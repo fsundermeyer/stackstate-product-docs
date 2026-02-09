@@ -1,0 +1,42 @@
+= Configuration du réseau
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+SUSE Observability est une offre SaaS hébergée dans le nuage. Pour pouvoir communiquer entre vos locaux/cloud et SUSE Observability SaaS, SUSE Observability Agent doit pouvoir se connecter à l'API SUSE Observability SaaS Receiver.
+Lorsque votre cluster fonctionne sur un réseau privé, vous devrez peut-être configurer votre réseau pour permettre à SUSE Observability Agent de se connecter à l'API SUSE Observability Receiver, car la configuration de votre réseau peut interdire le trafic de sortie vers l'Internet. Cette page décrit comment configurer votre réseau pour permettre l'installation de SUSE Observability Agent, ainsi que pour permettre à SUSE Observability Agent de communiquer avec l'API SUSE Observability Receiver.
+
+[NOTE]
+====
+Le trafic entre SUSE Observability Agent et SUSE Observability Receiver API est toujours initié par SUSE Observability Agent. L'API SUSE Observability Receiver n'initie aucun trafic vers SUSE Observability Agent.
+====
+
+
+== Installation de SUSE Observability Agent
+
+L'installation de SUSE Observability Agent se fait par l'intermédiaire de Helm. Par défaut, le diagramme Helm est configuré pour extraire les images de conteneurs de SUSE Observability Agent du registre Quay.io. Si la configuration de votre réseau interdit le trafic de sortie vers l'Internet, vous disposez de plusieurs options pour installer SUSE Observability Agent :
+
+. Configurez votre réseau pour autoriser le trafic sortant vers le registre de conteneurs Quay.io depuis votre cluster Kubernetes.
+. Proxyer le registre de conteneurs Quay.io à travers votre propre registre de conteneurs.
+. Insérez les images Docker dans votre propre registre de conteneurs.
+
+Pour les options 2 et 3, vous devez configurer le diagramme Helm pour extraire les images de conteneurs de SUSE Observability Agent de votre propre registre de conteneurs. Un guide permettant de configurer SUSE Observability Agent Helm Chart pour extraire des images de votre propre registre de conteneurs est disponible xref:/k8s-suse-rancher-prime-agent-air-gapped.adoc[ici.]
+
+== Communication de l'agent SUSE Observability
+
+SUSE Observability Agent communique avec l'API SUSE Observability Receiver via HTTPS. Les différentes parties de SUSE Observability Agent se connectent à l'API SUSE Observability Receiver, hébergée dans votre locataire, voir le diagramme suivant :
+
+image::k8s/k8s-agent-communication.png[Communication de l'agent SUSE Observability]
+
+Toutes les communications se font par HTTPS, en utilisant le port HTTPS standard 443. SUSE Observability Agent utilise les points d'extrémité suivants pour communiquer avec l'API SUSE Observability Receiver :
+
+* https:// *<tenant>.app.stackstate.io/receiver/stsAgent* - l'agent SUSE Observability envoie des métriques, des événements et des données topologiques à l'API SUSE Observability Receiver.
+
+Pour permettre à SUSE Observability Agent de communiquer avec SUSE Observability Receiver API, vous devez configurer votre réseau de manière à autoriser le trafic de sortie vers SUSE Observability Receiver API. L'API SUSE Observability Receiver est hébergée dans le nuage et dispose d'une IP spécifique pour votre locataire. Vous devez autoriser le trafic de sortie vers l'internet. Afin d'obtenir les adresses IP correctes pour autoriser le trafic de sortie, vous pouvez utiliser la commande suivante :
+
+[,bash]
+----
+$ dig +short <tenant>.app.stackstate.io
+----
+
+Vous pouvez également consulter l'URL suivante dans votre navigateur : `https://www.nslookup.io/domains/<tenant>.app.stackstate.io/dns-records/`
