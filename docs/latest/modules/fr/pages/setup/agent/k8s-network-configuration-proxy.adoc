@@ -1,0 +1,47 @@
+= Configuration de SUSE Observability Kubernetes Agent pour les connexions proxy
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+
+SUSE Observability Kubernetes Agent vous permet de configurer des paramètres de proxy HTTP ou HTTPS pour les connexions qu'il initie.
+
+== Proxy pour la communication avec SUSE Observability
+
+Pour configurer l'agent afin qu'il établisse des connexions proxy avec le backend SUSE Observability, vous pouvez utiliser la configuration Helm.
+
+=== Configuration de la barre
+
+==== Via `values.yaml` File
+
+. Ouvrez le fichier de la carte Helm `values.yaml`.
+. Localisez la configuration de `global.proxy.url` et spécifiez l'URL du proxy :
++
+[,yaml]
+----
+ global:
+   proxy:
+     url: "https://proxy.example.com:8080"
+----
+
+. Si le proxy ne dispose pas d'un certificat signé, il est possible de désactiver la vérification SSL en définissant `global.skipSslValidation` sur `true`:
++
+[,yaml]
+----
+ global:
+   skipSslValidation: true
+----
+
+==== Via l'indicateur de ligne de commande
+
+. Lors de l'installation de la carte Helm, utilisez l'option `--set` pour spécifier l'URL du proxy :
++
+[,bash]
+----
+ helm install suse-observability-agent suse-observability/suse-observability-agent --set global.proxy.url="https://proxy.example.com:8080"
+----
+
+. Pour désactiver la validation SSL via la ligne de commande, utilisez :
++
+[,bash]
+----
+ helm install suse-observability-agent suse-observability/suse-observability-agent --set global.skipSslValidation=true
+----
