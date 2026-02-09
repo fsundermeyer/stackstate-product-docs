@@ -1,0 +1,27 @@
+= Expédition de grumes
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Installation de l'agent
+
+=== Openshift
+
+Les expéditeurs de journaux tiers ne sont pas facilement pris en charge sur Openshift, la plateforme dispose d'options pour le transfert de journaux, qui est utilisé à la place de la configuration promtail incluse dans le tableau de bord de SUSE Observability.  Pour des instructions détaillées sur la façon de configurer cela, reportez-vous à la documentation Kubernetes stackpack sur votre instance SUSE Observability en cours d'exécution.
+
+=== Kubernetes
+
+La configuration par défaut de la carte helm de SUSE Observability k8s Agent définit l'envoi de journaux comme étant activé par les valeurs helm fournies avec la carte :
+
+[,yaml]
+----
+logsAgent:
+  # logsAgent.enabled -- Enable / disable k8s pod log collection
+  enabled: true
+----
+
+Ce qui précède garantit qu'un conteneur promtail est déployé sur chaque nœud pour collecter les journaux et les envoyer à SUSE Observability.  Pour les déploiements où il n'est pas souhaitable d'envoyer les journaux à SUSE Observability, définissez la valeur ci-dessus à `false`.
+
+=== Utilisation de dosettes Promtail supplémentaires
+
+SUSE Observability utilise une configuration adaptée pour l'ingestion des journaux, qui n'est généralement pas conforme aux exigences auxiliaires.  Il n'est donc pas possible d'exécuter une configuration distincte pour l'ingestion des journaux vers d'autres points de destination. Il est recommandé d'exécuter un deuxième pod promtail qui traite ces exigences séparément du promtail déployé par l'agent helm chart.

@@ -1,0 +1,21 @@
+= Vérifier que l'instrumentation fonctionne
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Si le collecteur et l'instrumentation ont été installés avec succès, les données devraient être disponibles dans SUSE Observability en l'espace d'une minute ou deux.
+
+Vous pouvez vérifier que SUSE Observability reçoit des traces :
+
+. Ouvrir SUSE Observability dans un navigateur
+. Trouver (l'un des) pods qui est instrumenté
+. Sélectionnez le pod pour ouvrir la page des faits marquants
+. Ouvrez la perspective de traçage. Si le pod est en train de servir le trafic, il devrait maintenant montrer des traces
+
+Pour vérifier que SUSE Observability reçoit des mesures :
+
+. Ouvrir SUSE Observability dans un navigateur
+. Ouvrez l'explorateur de métriques à partir du menu
+. Recherche des métriques exposées par votre application
+
+S'il n'y a toujours pas de mesures après 5 minutes, il y a probablement une mauvaise configuration. Voir le xref:/setup/otel/troubleshooting.adoc[dépannage] pour obtenir de l'aide.
