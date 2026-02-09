@@ -1,0 +1,124 @@
+= Widgets du tableau de bord
+:revdate: 2025-11-24
+:page-revdate: {revdate}
+:description: Visualisez les données de vos ressources à l'aide de divers gadgets.
+
+Les widgets sont les éléments constitutifs de votre tableau de bord. Ils visualisent des données, généralement à partir d'une ou plusieurs ressources Kubernetes. Les widgets peuvent également afficher des informations textuelles statiques à l'intention des utilisateurs du tableau de bord.
+
+== Ajouter un nouveau widget
+
+Vous pouvez ajouter un nouveau widget de l'une des deux manières suivantes :
+
+* Cliquez sur le bouton *Ajouter un widget* en haut à droite d'un tableau de bord.
+
+* Sur un tableau de bord vide, cliquez sur la section *Ajouter un widget* au milieu de l'écran. Un tiroir s'ouvre pour vous permettre de configurer le nouveau widget.
+
+image::dashboards/add-a-widget.png[Différentes façons d'ajouter un widget]
+
+== Ajouter un widget existant
+
+Lorsque vous visualisez un composant individuel sur {stackstate-product-name}, vous pouvez ajouter des graphiques directement à un tableau de bord en utilisant le menu "Plus d'actions" et en sélectionnant "Ajouter au tableau de bord".
+
+image::dashboards/add-existing-widget.png[Ajouter un widget existant]
+
+Cette fonction est également disponible pour tous les éléments épinglés, via le même menu "plus d'actions" sur un widget individuel.
+
+En outre, vous pouvez ajouter tous les éléments épinglés à un tableau de bord en utilisant les "autres actions" dans le tiroir des éléments épinglés ou en cliquant sur le bouton "Ajouter tous les éléments au tableau de bord" au bas du tiroir.
+
+image::dashboards/add-all-pinned-items.png[Ajout de tous les éléments épinglés]
+
+Les widgets qui en résultent dans le tableau de bord comportent un lien vers la ressource à partir de laquelle ils ont été ajoutés.
+
+== Configuration d'un widget
+
+Chaque widget dispose d'un certain nombre d'options de configuration. Certaines sont communes à tous les widgets, d'autres sont basées sur le type de widget.
+
+Pour modifier la configuration d'un widget, utilisez le menu "Plus d'actions" et sélectionnez "Modifier le widget".
+
+image::dashboards/configure-a-widget.png[Ajout de tous les éléments épinglés]
+
+=== Champs de widgets communs
+
+|===
+| Nom du champ | Description
+
+| Nom
+| Un nom court et descriptif affiché dans l'en-tête du widget.
+
+| Description
+| Détails supplémentaires affichés dans l'en-tête du widget derrière une infobulle.
+
+| Type
+| Le <<types, type de visualisation>>.
+|===
+
+Outre ces champs, il existe des onglets communs à tous les widgets : 
+
+|===
+| Nom de l'onglet | Description
+
+| Liens
+| Liens vers des ressources connexes, affichés sous le nom du widget. Le premier lien est toujours affiché. D'autres liens sont disponibles dans un menu déroulant.
+
+| YAML
+| La configuration YAML brute du widget, qui peut être visualisée et modifiée.
+|===
+
+
+=== Onglet Requêtes
+
+Les types de widgets destinés à afficher des données provenant de ressources disposent d'un onglet *Requêtes*. Vous pouvez ajouter une ou plusieurs requêtes PromQL pour récupérer les données du widget.
+
+
+=== Les types [[types]]
+
+==== TimeSeriesChart
+
+Le site `TimeSeriesChart` permet de visualiser les données d'une série temporelle dans un graphique linéaire. Chaque requête dans la configuration du widget produit une ligne sur le graphique.
+
+image::dashboards/time-series-chart-example.png[Exemple de graphique de séries chronologiques]
+
+Vous pouvez configurer les paramètres suivants :
+
+* *Légende* - Position et mode de la légende.
+* **Visuel** - Relier les valeurs nulles pour créer une ligne continue.
+* **Axe Y** - L'unité, l'étiquette et les valeurs min/max pour l'axe Y.
+* **Seuils** - Ajoutez des lignes horizontales au graphique pour marquer les seuils de valeur importants.
+
+==== Diagramme à barres
+
+Le site `BarChart` permet de visualiser les données d'une série chronologique dans un diagramme à barres. Les paramètres de la légende, de l'axe Y et des seuils sont les mêmes que ceux de la page `TimeSeriesChart`.
+
+image::dashboards/bar-chart-example.png[Exemple de diagramme à barres]
+
+==== StatChart
+
+Le site `StatChart` affiche un graphique en ligne et une valeur unique facile à lire d'un coup d'œil. Les seuils peuvent être configurés pour changer la couleur du texte en fonction de la valeur.
+
+image::dashboards/gauge-chart-example.png[Exemple de tableau de jauge]
+
+Vous pouvez configurer les paramètres suivants :
+
+* **Sparkline** - Permet d'afficher ou de masquer le graphique sparkline.
+* **Unité** - L'unité de la valeur.
+* **Décimales** - Nombre de décimales à afficher.
+* **Calcul** - La méthode utilisée pour calculer la valeur à partir des données de la série temporelle.
+
+==== GaugeChart
+
+Le site `GaugeChart` affiche une jauge avec une valeur au milieu. La couleur de la jauge et le texte changent lorsque la valeur franchit un seuil.
+
+image::dashboards/stat-chart-example.png[Exemple de diagramme de statistiques]
+
+Vous pouvez configurer les paramètres suivants :
+
+* **Unité** - L'unité de la valeur.
+* **Décimales** - Nombre de décimales à afficher.
+* **Max** - Valeur maximale de la jauge.
+* **Calcul** - La méthode utilisée pour calculer la valeur à partir des données de la série temporelle.
+
+==== Markdown
+
+Le widget `Markdown` affiche du texte en format markdown. Elle permet d'ajouter des explications ou d'autres informations à votre tableau de bord.
+
+image::dashboards/markdown-chart-example.png[Exemple de tableau de démarcation]
