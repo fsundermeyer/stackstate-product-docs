@@ -1,0 +1,58 @@
+ifdef::ss-ff-stackpacks2_enabled[]
+= Vue d'ensemble des intégrations personnalisées
+:revdate: 2026-01-06
+:page-revdate: {revdate}
+:description:  Vue d'ensemble des intégrations personnalisées
+
+[IMPORTANT]
+====
+Custom Integrations est une fonctionnalité en pré-production, non publiée, et peut donc faire l'objet de modifications au fur et à mesure de l'évolution de la fonctionnalité. Il n'est pas destiné à la production. Mais il peut être testé dans des environnements de non-production.
+====
+
+== Vue d'ensemble
+
+Les intégrations personnalisées s'appuient sur Open Telemetry pour collecter et envoyer des données télémétriques (métriques, traces, journaux) provenant de diverses sources à {stackstate-product-name}. En utilisant Open Telemetry, les utilisateurs peuvent instrumenter leurs applications et services afin d'obtenir des informations sur la performance, la fiabilité et la santé opérationnelle.
+Sur le site {stackstate-product-name}, l'xref:setup/custom-integrations/otelmappings/README.adoc[Open Telemetry Mappings] traite les données de télémétrie entrantes, applique les transformations nécessaires et les met en correspondance avec les entités appropriées sur le site {stackstate-product-name}. Des xref:setup/custom-integrations/monitors/index.adoc[moniteurs], des xref:setup/custom-integrations/metric-bindings/index.adoc[liaisons métriques] et une xref:setup/custom-integrations/ui-presentation/README.adoc[présentation de l'interface] utilisateur peuvent être définis pour présenter la télémétrie ingérée dans l'interface utilisateur, ajouter des alertes et des possibilités d'observation. Le tout est emballé dans un xref:setup/custom-integrations/develop.adoc[sac à dos] pour être distribué.
+
+== Développement de l'installation
+
+Les intégrations personnalisées doivent être développées à partir d'un déploiement de pré-production de la plateforme {stackstate-product-name}. Pour obtenir une configuration de pré-production afin de commencer à développer votre intégration personnalisée, il existe deux options :
+
+=== Instance SaaS (recommandée) :
+Pour les équipes SUSE internes, nous recommandons de demander une instance SaaS à l'équipe {stackstate-product-name}. Ces instances ont des intégrations personnalisées activées et sont mises à jour automatiquement au moins à chaque nouvelle version. Dans certains cas, elles reçoivent des pré-versions contenant d'importantes corrections de bogues ou des incréments sur des fonctionnalités expérimentales.
+Contactez-nous via le canal dédié (à annoncer).
+
+=== Auto-hébergé :
+Vous pouvez activer les intégrations personnalisées dans votre propre installation hébergée sur {stackstate-product-name} en définissant certains drapeaux de fonctionnalité lors de l'installation via helm :
+
+    . Générer le site `custom_integrations_values.yaml`. Ce guide suppose que vous l'enregistrez dans le fichier `$VALUES_DIR`
+
++
+.$VALUES_DIR/custom_integrations_values.yaml
+[,yaml]
+----
+global:
+  features:
+    experimentalStackpacks: true
+----
++
+
+    . Déployer le diagramme de barre {stackstate-product-name} avec les valeurs générées ainsi que les `.$VALUES_DIR/custom_integrations_values.yaml`
+
++
+.helm_deploy.sh
+[,text]
+----
+helm upgrade --install \
+    --namespace suse-observability \
+    --create-namespace \
+    --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+    --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+    --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+    --values $VALUES_DIR/custom_integrations_values.yaml \
+    suse-observability \
+    suse-observability/suse-observability
+----
++
+
+endif::ss-ff-stackpacks2_enabled[]
