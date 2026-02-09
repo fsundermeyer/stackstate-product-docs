@@ -1,0 +1,23 @@
+= Organiser un tableau de bord
+:revdate: 2025-11-24
+:page-revdate: {revdate}
+:description: Organiser, redimensionner, modifier et supprimer des widgets sur un tableau de bord.
+
+== Disposer et redimensionner les widgets
+
+Vous pouvez organiser les widgets d'un tableau de bord pour créer une présentation qui vous convient.
+
+* Pour déplacer un widget, cliquez sur la zone de titre du widget et faites-la glisser vers une nouvelle position.
+* Pour redimensionner un widget, cliquez et faites glisser le coin inférieur droit du widget.
+
+Les autres widgets du tableau de bord se réorganisent automatiquement lorsque vous déplacez ou redimensionnez un widget.
+
+== Modifier ou supprimer un widget
+
+. Pour modifier ou supprimer un widget, cliquez sur l'icône "Plus d'actions" en haut à droite du widget. 
+
+. Sélectionnez *Modifier le widget* ou *Supprimer le widget*.
+
+Pour inspecter les données du widget plus en détail, cliquez sur l'icône à côté du bouton "plus d'actions" dans le tiroir de l'inspecteur de métriques.
+
+image::dashboards/widget-organization.png[Édition, deleting and inspecting widgets]
