@@ -1,0 +1,25 @@
+= Instructions de mise à jour spécifiques à chaque version
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+== Vue d'ensemble
+
+[CAUTION]
+====
+*Lisez les instructions fournies sur cette page avant de procéder à la mise à jour !*
+
+Cette page fournit des instructions spécifiques et des détails sur les étapes manuelles nécessaires à la mise à niveau vers chaque version prise en charge de SUSE Observability. Toute modification importante susceptible d'avoir un impact sur le fonctionnement de SUSE Observability après la mise à niveau sera décrite ici, par exemple une modification des besoins en mémoire ou de la configuration.
+
+*Lisez et appliquez toutes les instructions de la version que vous utilisez actuellement jusqu'à la version vers laquelle vous allez passer.*
+====
+
+
+== Instructions de mise à niveau
+
+=== Version suivante
+
+== Voir aussi
+
+* xref:/setup/release-notes/README.adoc[Notes de mise à jour]
+* xref:/setup/upgrade-stackstate/steps-to-upgrade.adoc[Étapes de la mise à niveau de SUSE Observability]
