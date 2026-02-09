@@ -1,0 +1,21 @@
+= Démarrer avec Open Telemetry
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+image::otel/open-telemetry.svg[Collecteur Open Telemetry et 2 applications instrumentées envoyant des mesures et des traces à SUSE Observability]
+
+SUSE Observability prend en charge https://opentelemetry.io/docs/what-is-opentelemetry/[Open Telemetry]. Open Telemetry est un ensemble de protocoles normalisés et un cadre open-source permettant de collecter, de transformer et d'expédier des données télémétriques telles que des traces, des mesures et des journaux. La télémétrie ouverte prend en charge une grande variété de langages de programmation et de plates-formes.
+
+SUSE Observability prend en charge les métriques et les traces et ajoute les métriques et les traces Open Telemetry aux données topologiques (Kubernetes) fournies par l'agent SUSE Observability. Il est donc nécessaire d'installer également l'agent SUSE Observability. La prise en charge des journaux et de l'utilisation d'Open Telemetry sans l'agent SUSE Observability sera bientôt disponible.
+
+Open Telemetry se compose de plusieurs éléments différents. Pour l'utilisation de SUSE Observability, les xref:/setup/otel/languages/README.adoc[SDK] permettant d'instrumenter votre application et le xref:/setup/otel/collector.adoc[collecteur Open Telemetry] sont les éléments les plus importants. Nous verrons comment les configurer pour les utiliser avec SUSE Observability.
+
+Si votre application est déjà instrumentée avec Open Telemetry ou avec toute autre bibliothèque supportée par Open Telemetry, comme Jaeger ou Zipkin, le collecteur peut être utilisé pour envoyer ces données à SUSE Observability et aucune instrumentation supplémentaire n'est nécessaire.
+
+SUSE Observability exige que le collecteur soit configuré avec des processeurs et une authentification spécifiques afin de garantir la disponibilité de toutes les données utilisées par SUSE Observability.
+
+== Références
+
+* https://opentelemetry.io/docs/collector/[Collecteur Open Telemetry] sur la documentation Open Telemetry
+* https://opentelemetry.io/docs/languages/[SDK pour instrumenter votre application] sur la documentation Open Telemetry
