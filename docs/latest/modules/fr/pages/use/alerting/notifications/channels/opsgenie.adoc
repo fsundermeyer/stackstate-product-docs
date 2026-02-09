@@ -1,0 +1,42 @@
+= Opsgenie
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Configurer les notifications d'Opsgenie
+
+Pour envoyer des notifications à Opsgenie, suivez les étapes suivantes :
+
+. <<_create_integration,Créer une intégration dans OpsGenie>>
+. <<_create_and_test_the_channel,Créer le canal>>
+
+=== Créer l'intégration
+
+Pour intégrer SUSE Observability à OpsGenie, il faut créer une " clé API " globale.  Les répondeurs d'une notification peuvent être différents pour chaque notification et seront configurés dans SUSE Observability.
+
+Dans Opsgenie, allez dans "Paramètres \-> Intégrations".
+
+* Cliquez sur le bouton "Ajouter une intégration".
+* Recherchez le type d'intégration "API".
+* Choisissez un nom pour cette intégration, mais _ne sélectionnez pas d'équipe d'assignation_.
+
+Lorsque l'intégration a été créée, elle dispose d'une "clé API".
+
+=== Créer et tester le canal
+
+image::k8s/notifications-opsgenie-channel-configuration.png[Créer le canal]
+
+Sélectionnez la région appropriée pour votre compte OpsGenie et entrez la "clé API".  Choisissez les intervenants pour la notification ; les _utilisateurs_, les _équipes_, les _calendriers_et les _escalades_ sont disponibles pour cela.
+
+Cliquez sur le bouton "Ajouter un canal". Le canal est ajouté à la liste des canaux sur la droite. Un bouton "Test" apparaît. Le fait d'appuyer sur cette touche génère une alerte test dans OpsGenie.
+
+== Alertes OpsGenie pour les notifications
+
+Lorsqu'une notification est ouverte, une nouvelle alerte OpsGenie est créée. Ce message sera mis à jour en cas de changement, généralement uniquement lorsque l'état de santé change. Lorsque la notification est fermée, l'alerte OpsGenie est à nouveau fermée.  Une note sur le signalement contient la raison de sa fermeture.
+
+.Une alerte OpsGenie générée par SUSE Observability
+image::k8s/notifications-opsgenie-alert-example.png[Alerte Opsgenie,75%]
+
+== En rapport
+
+* xref:/use/alerting/notifications/troubleshooting.adoc[Dépannage]

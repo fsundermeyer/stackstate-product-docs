@@ -1,0 +1,53 @@
+= Concepts de télémétrie ouverte
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Il s'agit d'un résumé des concepts les plus importants de la télémétrie ouverte, qui devrait suffire pour commencer. Pour une introduction plus détaillée, utilisez la https://opentelemetry.io/docs/concepts/[documentation].
+
+== Signaux
+
+Open Telemetry reconnaît 3 signaux de télémétrie :
+
+* Traces
+* Métriques
+* Journaux
+
+Pour l'instant, SUSE Observability prend en charge les traces et les métriques, les journaux seront pris en charge dans une prochaine version. Pour les journaux Kubernetes, il est possible d'utiliser l'xref:/k8s-quick-start-guide.adoc[agent SUSE Observability] à la place.
+
+=== Traces
+
+Les traces nous permettent de visualiser le cheminement d'une requête dans votre application. Une trace est constituée d'une ou plusieurs travées qui, ensemble, forment une arborescence. Une trace peut se situer entièrement dans un seul service, mais elle peut également concerner plusieurs services. Chaque travée représente une opération dans le traitement de la demande et a :
+
+* un nom
+* l'heure de début et de fin, à partir de laquelle une durée peut être calculée
+* statut
+* attributs
+* les attributs des ressources (voir <<_resources,ressources>>)
+* événements
+
+Les attributs des span sont utilisés pour fournir des métadonnées pour le span, par exemple un span pour une opération qui passe une commande peut avoir le `orderId` comme attribut, ou un span pour une opération HTTP peut avoir la méthode HTTP et l'URL comme attributs.
+
+Les événements de la travée peuvent être utilisés pour représenter un moment où quelque chose d'important s'est produit dans le cadre du fonctionnement de la travée. Par exemple, en cas d'échec du span, il peut y avoir un événement `exception` ou `error` qui capture le message d'erreur, une trace de la pile et le moment exact où l'erreur s'est produite.
+
+=== Métriques
+
+Les métriques sont des mesures capturées au moment de l'exécution et elles se traduisent par un événement métrique. Les mesures sont des indicateurs importants de la performance et de la disponibilité des applications et sont souvent utilisées pour signaler une panne ou un problème de performance. Les métriques ont :
+
+* un nom
+* un horodatage
+* un type (compteur, jauge, histogramme, etc.)
+* attributs
+* les attributs des ressources (voir <<_resources,ressources>>)
+
+Les attributs fournissent les métadonnées d'une métrique.
+
+== Ressources
+
+Une ressource est l'entité qui produit les données télémétriques. Les attributs de la ressource fournissent les métadonnées de la ressource. Par exemple, un processus s'exécutant dans un conteneur, dans un pod, dans un espace de noms dans un cluster Kubernetes peut avoir des attributs de ressources pour toutes ces entités.
+
+Les attributs des ressources sont souvent attribués automatiquement par les SDK. Il est toutefois recommandé de toujours définir explicitement les attributs `service.name` et `service.namespace`. Le premier est le nom logique du service, s'il n'est pas défini, le SDK définira une valeur `unknown_service`, ce qui rendra très difficile l'utilisation ultérieure des données dans SUSE Observability. L'espace de noms est un moyen pratique d'organiser vos services, particulièrement utile si les mêmes services sont exécutés à plusieurs endroits.
+
+== Conventions sémantiques
+
+Open Telemetry définit des noms communs pour les opérations et les données, c'est ce qu'ils appellent les conventions sémantiques. Les conventions sémantiques suivent un schéma de dénomination qui permet de normaliser le traitement des données entre les langages, les bibliothèques et les bases de code. Il existe des conventions sémantiques pour tous les signaux et pour les attributs des ressources. Ils sont définis pour de nombreuses plateformes et opérations différentes sur le https://opentelemetry.io/docs/specs/semconv/attributes-registry/[site web]. Les SDK utilisent les conventions sémantiques pour attribuer ces attributs et SUSE Observability respecte également les conventions et s'appuie sur elles, par exemple pour reconnaître les ressources Kubernetes.
