@@ -1,0 +1,496 @@
+= CLI : sts
+:revdate: 2025-07-29
+:page-revdate: {revdate}
+:description: {stackstate-product-name}
+
+== Vue d'ensemble
+
+Le CLI {stackstate-product-name} `sts` permet d'accéder facilement aux fonctionnalités fournies par les API {stackstate-product-name}. Il peut être utilisé pour automatiser l'utilisation des données de {stackstate-product-name}, pour configurer {stackstate-product-name} et pour développer des StackPacks.
+
+== Conditions préalables
+
+* **{stackstate-product-name} URL** - L'URL de votre instance {stackstate-product-name} (la même URL que celle utilisée pour accéder à l'interface web).
+* **Jeton API** - Un jeton API valide pour l'authentification, qui peut être récupéré à partir de la page *CLI* de votre instance {stackstate-product-name}.
+
+Pour obtenir votre jeton API :
+
+. Connectez-vous à votre instance {stackstate-product-name}.
+. Naviguez vers le *menu principal* > *CLI*.
+. Copiez la clé API affichée sur la page.
+
+== Démarrage rapide
+
+La manière la plus rapide d'installer et de configurer le CLI `sts` est d'utiliser les commandes pré-remplies disponibles dans votre instance {stackstate-product-name}:
+
+. Connectez-vous à votre instance {stackstate-product-name}.
+. Naviguez vers le *menu principal* > *CLI*.
+. Copiez la commande correspondant à votre système d'exploitation et exécutez-la dans un terminal.
+
+Ces commandes sont pré-remplies avec l'URL et le jeton API corrects pour votre instance {stackstate-product-name} spécifique, ce qui fait de l'installation et de la configuration une étape unique.
+
+== Télécharger le CLI
+
+[tabs]
+====
+Fenêtres::
++
+--
+Ouvrez un terminal *Powershell* (version 5.1 ou ultérieure) et exécutez les étapes ci-dessous. Cela peut se faire étape par étape, ou être regroupé en un seul script. Après l'installation, la commande `sts` sera disponible pour l'utilisateur actuel à la fois dans le terminal Powershell et dans l'invite de commande (cmd.exe).
+
+. Définir la version source et le chemin cible de l'interface de programmation :
++
+[,powershell]
+----
+$CLI_PATH = $env:USERPROFILE +"\stackstate-cli"
+If (!(test-path $CLI_PATH)) { md $CLI_PATH }
+Invoke-WebRequest https://dl.stackstate.com/stackstate-cli/LATEST_VERSION -OutFile $CLI_PATH\VERSION
+$VERSION=type $CLI_PATH\VERSION
+$VERSION=$VERSION -replace "[v]"
+$CLI_DL = "https://dl.stackstate.com/stackstate-cli/v$VERSION/stackstate-cli-$VERSION.windows-x86_64.zip"
+echo "Installing {stackstate-product-name} CLI v$VERSION to: $CLI_PATH"
+----
+
+. Téléchargez et décompressez le CLI dans le chemin du CLI cible. Retirer les objets restants :
++
+[,powershell]
+----
+Invoke-WebRequest $CLI_DL -OutFile $CLI_PATH\stackstate-cli.zip
+Expand-Archive -Path "$CLI_PATH\stackstate-cli.zip" -DestinationPath $CLI_PATH -Force
+rm $CLI_PATH\stackstate-cli.zip, $CLI_PATH\VERSION
+----
+
+. Enregistrer le chemin d'accès au CLI dans le PATH de l'utilisateur actuel. La commande `sts` sera ainsi disponible partout :
++
+[,powershell]
+----
+$PATH = (Get-ItemProperty -Path "Registry::HKEY_CURRENT_USER\Environment" -Name PATH).Path
+if ( $PATH -notlike "*$CLI_PATH*" ) {
+  $PATH = "$PATH;$CLI_PATH"
+  (Set-ItemProperty -Path "Registry::HKEY_CURRENT_USER\Environment" -Name PATH –Value $PATH)
+  $MACHINE_PATH = (Get-ItemProperty -Path "Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment" -Name PATH).path
+  $env:Path = "$PATH;$MACHINE_PATH"
+}
+----
+
+. Vérifiez que la CLI fonctionne :
++
+[,powershell]
+----
+sts version
+----
+--
+
+macOS::
++
+--
+Ouvrez un terminal et suivez les étapes ci-dessous. Cette opération peut être réalisée étape par étape ou dans le cadre d'un script unique. Après l'installation, la commande `sts` sera disponible pour l'utilisateur actuel.
+
+. Téléchargez la dernière version du CLI pour x86_64 (Intel) ou arm64 (M1).
++
+[,bash]
+----
+(VERSION=`curl https://dl.stackstate.com/stackstate-cli/LATEST_VERSION` &&
+  VERSION=${VERSION#v} &&
+  ARCH=`uname -m` &&
+  curl https://dl.stackstate.com/stackstate-cli/v$VERSION/stackstate-cli-$VERSION.darwin-$ARCH.tar.gz | tar xz --directory /usr/local/bin)
+----
+
+. Vérifiez que la CLI fonctionne :
++
+[,bash]
+----
+sts version
+----
+--
+
+Linux::
++
+--
+Ouvrez un terminal et suivez les étapes ci-dessous. Cette opération peut être réalisée étape par étape ou dans le cadre d'un script unique. Après l'installation, la commande `sts` sera disponible pour l'utilisateur actuel.
+
+. Téléchargez et décompressez la dernière version pour x86_64 :
++
+[,bash]
+----
+(VERSION=`curl https://dl.stackstate.com/stackstate-cli/LATEST_VERSION` && VERSION=${VERSION#v} &&
+curl https://dl.stackstate.com/stackstate-cli/v$VERSION/stackstate-cli-$VERSION.linux-x86_64.tar.gz | tar xz --directory /usr/local/bin)
+----
+
+. Vérifiez que la CLI fonctionne :
++
+[,bash]
+----
+sts version
+----
+--
+
+Docker::
++
+--
+Pour exécuter la dernière version du CLI à l'aide de Docker, exécutez :
+
+[,bash]
+----
+docker run stackstate/stackstate-cli2
+----
+
+Vous pouvez également vous rendre sur la page *CLI* de l'interface utilisateur {stackstate-product-name} et copier la commande d'*installation rapide* de *Docker* - celle-ci est pré-remplie avec les adresses `<URL>` et `<API-TOKEN>` requises pour configurer le CLI pour votre instance {stackstate-product-name}.
+
+Vous pouvez désormais exécuter des commandes CLI en les ajoutant à la fin de la commande `docker run` (par exemple, `docker run stackstate/stackstate-cli2 version`).
+--
+====
+
+== Configurer le CLI
+
+=== Authentification
+
+==== Jeton API
+
+Par défaut, la CLI s'authentifie à l'aide du jeton API que vous avez fourni lors de l'enregistrement de la configuration de la CLI.
+
+[CAUTION]
+====
+Le moyen le plus sûr d'utiliser votre jeton API est d'utiliser une variable d'environnement. Vous pouvez stocker le jeton API dans un gestionnaire de secrets et l'injecter en tant que variable d'environnement dans votre shell.
+====
+
+[tabs]
+====
+Windows / macOS / Linux::
++
+--
+. Dans l'interface {stackstate-product-name}, allez dans le *menu principal* > *CLI* et copiez votre jeton API.
+. Exécutez la commande ci-dessous, où `<URL>` est l'URL de votre instance {stackstate-product-name} et `<API-TOKEN>` est le jeton API que vous avez copié à partir de la page CLI dans l'interface {stackstate-product-name}:
++
+[,bash]
+----
+sts context save --name <NAME> --url <URL> --api-token <API-TOKEN>
+----
+
+. La connexion à votre instance {stackstate-product-name} sera testée et un fichier de configuration sera stocké à l'adresse `~/.config/stackstate-cli/config.yaml`.
+--
+
+Docker::
++
+--
+La version Docker du CLI ne peut pas être configurée avec un fichier de configuration. Spécifiez la configuration de votre instance {stackstate-product-name} à l'aide de variables d'environnement et transmettez-les à Docker :
+
+* `STS_CLI_URL` - l'URL de votre instance {stackstate-product-name}.
+* `STS_CLI_API_TOKEN` - le jeton API extrait du *menu principal de* l'interface utilisateur {stackstate-product-name} > page *CLI*.
+* `STS_CA_CERT_PATH` - chemin d'accès à un fichier de certificat CA codé en PEM pour les serveurs utilisant des certificats auto-signés. Le répertoire contenant le certificat doit être monté dans le conteneur Docker.
+* `STS_CA_CERT_BASE64_DATA` - données du certificat CA codées en base64 pour les serveurs utilisant des certificats auto-signés (ignorées si `STS_CA_CERT_PATH` est spécifié).
+* `STS_SKIP_SSL` - désactive la validation des certificats SSL (ignore les configurations des certificats, à utiliser avec précaution).
+
+Par exemple :
+
+[,bash]
+----
+docker run \
+   -v /path/to/certs:/certs \
+   -e STS_CLI_URL \
+   -e STS_CLI_API_TOKEN \
+   -e STS_CA_CERT_PATH=/certs/ca.crt \
+   stackstate/stackstate-cli2 settings list --type Layer
+----
+--
+====
+
+==== Jetons de service
+
+Vous pouvez éventuellement utiliser le CLI pour créer un ou plusieurs jetons de service afin de vous authentifier auprès des API de base et d'administration de {stackstate-product-name}. Par exemple, un jeton de service peut être utilisé pour s'authentifier dans des scénarios d'intégration continue (CI) où aucun utilisateur réel n'effectue les opérations sur l'instance {stackstate-product-name}.
+
+Pour créer un jeton de service, exécutez la commande ci-dessous :
+
+[,bash]
+----
+sts service-token create --name <NAME> --roles <ROLE(s)> [--expiration <yyyy-MM-dd>]
+----
+
+Cela créera un nouveau jeton de service et l'imprimera. Le paramètre `--expiration` est facultatif et peut être utilisé pour définir la date d'expiration du jeton de service.
+
+Une fois que vous l'avez obtenu, vous pouvez configurer l'interface de programmation pour l'utiliser :
+
+[,bash]
+----
+sts context save --name <NAME> --service-token <TOKEN> --url <URL>
+----
+
+=== Gérer des contextes multiples
+
+Le CLI de `sts` prend en charge la configuration et la gestion de différents contextes (d'authentification). Cela vous permet de passer facilement d'un utilisateur administratif à un utilisateur normal, ou de passer d'une instance {stackstate-product-name} à une autre. Par exemple, vous pouvez utiliser un contexte différent pour une instance de test et de production de {stackstate-product-name}. Vous pouvez lister, enregistrer, supprimer, définir et valider des contextes dans l'interface CLI de `sts`. Lancez `sts context -h` pour obtenir des détails sur les commandes disponibles et leur utilisation.
+
+=== Options de configuration
+
+Vous n'avez pas besoin d'un fichier de configuration pour exécuter le CLI `sts`. Vous pouvez également configurer l'interface de programmation en combinant des variables d'environnement et des drapeaux.
+
+Si plusieurs types de configuration sont présentés à la CLI, l'ordre de traitement sera le suivant :
+
+. Drapeaux
+. Variables d'environnement
+. Fichier de configuration
+
+|===
+| Variable d'environnement | Drapeau | Description
+
+| `STS_CLI_URL`
+| `--url`
+| URL de votre instance {stackstate-product-name}.
+
+| `STS_CLI_API_TOKEN`
+| `--api-token`
+| à votre instance {stackstate-product-name}. Le moyen le plus sûr d'utiliser votre jeton API est d'utiliser une variable d'environnement. Vous pouvez stocker le jeton API dans un gestionnaire de secrets et l'injecter en tant que variable d'environnement dans votre shell.
+
+| `STS_CLI_SERVICE_TOKEN`
+| `--service-token`
+| Un jeton de service pour votre instance {stackstate-product-name}. Le moyen le plus sûr d'utiliser votre jeton de service est d'utiliser une variable d'environnement. Vous pouvez stocker le jeton de service dans un gestionnaire de secrets et l'injecter en tant que variable d'environnement dans votre shell.
+
+| `STS_CA_CERT_PATH`
+| `--ca-cert-path`
+| Chemin d'accès à un fichier de certificat CA codé en PEM pour les serveurs utilisant des certificats auto-signés ou des certificats d'une autorité de certification privée.
+
+| `STS_CA_CERT_BASE64_DATA`
+| `--ca-cert-base64-data`
+| Données du certificat d'autorité de certification codées en base64 pour les serveurs utilisant des certificats auto-signés ou des certificats d'une autorité de certification privée. Ignoré si `STS_CA_CERT_PATH` est spécifié.
+
+| `STS_SKIP_SSL`
+| `--skip-ssl`
+| Désactive la validation des certificats SSL. Si la valeur est `true`, l'interface de programmation ne validera pas les certificats SSL et ignorera les paramètres `STS_CA_CERT_PATH` et `STS_CA_CERT_BASE64_DATA`. A utiliser avec précaution car cela réduit la sécurité.
+
+| `STS_CLI_API_PATH`
+| n/a
+| Le chemin ajouté à la fin de l'URL pour obtenir le point de terminaison de l'API. (La valeur par défaut est `/api`)
+
+| `STS_CLI_CONTEXT`
+| `--context`
+| Le nom du contexte à utiliser.
+|===
+
+En plus de modifier des parties spécifiques du fichier de configuration, il est également possible de modifier l'emplacement par défaut du fichier de configuration. Cela se fait par l'intermédiaire du drapeau `--config <PATH>`.
+
+== Commandes disponibles
+
+Le CLI de `sts` propose les commandes de premier niveau suivantes :
+
+|===
+| Commandement | Description
+
+| agent
+| Gérer les agents {stackstate-product-name} 
+
+| achèvement
+| Générer des scripts d'autocomplétion pour les shells
+
+| context
+| Gérer les contextes et les configurations de la CLI
+
+| tableau de bord
+| Gérer les tableaux de bord
+
+| la santé
+| Commandes relatives à la synchronisation de la santé
+
+| licence
+| Gérer les informations relatives à la licence {stackstate-product-name} 
+
+| moniteur
+| Gérer les moniteurs et les configurations de surveillance
+
+ifdef::ss-ff-stackpacks2_enabled[]
+| otel-component-mapping*
+| Gérer les mappages des composants d'OpenTelemetry
+
+| otel-relation-mapping*
+| Gérer les mappages des relations OpenTelemetry
+endif::ss-ff-stackpacks2_enabled[]
+
+| rbac
+| Gérer RBAC
+
+| service-token
+| Gérer les jetons de service.
+
+| paramètres
+| Gérer les paramètres et les configurations des instances
+
+| stackpack
+| Gérer et télécharger des StackPacks
+
+| thème
+| Gérer les sujets Kafka
+
+| topologie-sync
+| Gérer la synchronisation de la topologie
+
+| session utilisateur
+| Inspecter les sessions des utilisateurs
+
+| version
+| Afficher les informations sur la version
+|===
+
+ifdef::ss-ff-stackpacks2_enabled[]
+{empty}* Commandes expérimentales nécessitant l'activation de la variable d'environnement `STS_EXPERIMENTAL_OTEL_MAPPING=true`.
+
+Exemple d'utilisation :
+
+[,bash]
+----
+STS_EXPERIMENTAL_OTEL_MAPPING=true sts otel-component-mapping --help
+----
+endif::ss-ff-stackpacks2_enabled[]
+
+Toutes les commandes acceptent le drapeau `--help`, qui documente l'utilisation de chaque commande.
+
+Pour obtenir des informations détaillées sur une commande et ses sous-commandes, exécutez :
+
+[,bash]
+----
+sts [command] --help
+----
+
+== Mise à niveau
+
+Pour passer à la dernière version du CLI `sts`, <<_quick_start, exécutez à nouveau la commande d'installation.>>
+
+Vous pouvez vérifier la version du CLI `sts` que vous utilisez actuellement à l'aide de la commande `sts version`.
+
+== Désinstaller
+
+[tabs]
+====
+Fenêtres::
++
+--
+[discrete]
+=== Désinstallation rapide
+
+Ouvrez un terminal *Powershell* et exécutez :
+
+[,powershell]
+----
+. { iwr -useb https://dl.stackstate.com/stackstate-cli/install.ps1 } | iex; uninstall
+----
+
+Le CLI `sts` et toute la configuration associée sont maintenant supprimés pour l'utilisateur actuel.
+
+[discrete]
+=== Désinstallation manuelle
+
+Ouvrez un terminal *Powershell* et exécutez chaque étape une par une ou toutes en même temps. Le CLI `sts` et toute la configuration associée seront supprimés pour l'utilisateur actuel.
+
+. Supprimer le binaire :
++
+[,powershell]
+----
+$CLI_PATH = $env:USERPROFILE+"\stackstate-cli"
+rm -R $CLI_PATH 2>1  > $null
+----
+
+. Supprimer la configuration :
++
+[,powershell]
+----
+rm -R $env:USERPROFILE+"\.config\stackstate-cli" 2>1  > $null
+----
+
+. Supprimer le CLI du chemin d'accès à l'environnement :
++
+[,powershell]
+----
+$PATH = (Get-ItemProperty -Path 'Registry::HKEY_CURRENT_USER\Environment' -Name PATH).Path
+$i = $PATH.IndexOf(";$CLI_PATH")
+if ($i -ne -1) {
+  $PATH = $PATH.Remove($i, $CLI_PATH.Length+1)
+  (Set-ItemProperty -Path 'Registry::HKEY_CURRENT_USER\Environment' -Name PATH –Value $PATH)
+}
+----
+--
+
+macOS::
++
+--
+[discrete]
+=== Désinstallation rapide
+
+Ouvrez un terminal et exécutez :
+
+[,bash]
+----
+curl -o- https://dl.stackstate.com/stackstate-cli/uninstall.sh | bash
+----
+
+Le CLI `sts` et toute la configuration associée sont maintenant supprimés pour l'utilisateur actuel.
+
+[discrete]
+=== Désinstallation manuelle
+
+. Ouvrez un terminal.
+. Pour supprimer le CLI `sts`, exécutez la commande suivante :
++
+[,bash]
+----
+rm -r /usr/local/bin/sts
+----
+
+. Pour supprimer la configuration de la CLI de `sts`, exécutez la commande suivante :
++
+[,bash]
+----
+rm -r ~/.config/stackstate-cli
+----
+
+Le CLI `sts` et toute la configuration associée sont maintenant supprimés pour l'utilisateur actuel.
+--
+
+Linux::
++
+--
+[discrete]
+=== Désinstallation rapide
+
+Ouvrez un terminal et exécutez :
+
+[,bash]
+----
+curl -o- https://dl.stackstate.com/stackstate-cli/uninstall.sh | bash
+----
+
+Le CLI `sts` et toute la configuration associée sont maintenant supprimés pour l'utilisateur actuel.
+
+[discrete]
+=== Désinstallation manuelle
+
+. Ouvrez un terminal.
+. Pour supprimer le CLI `sts`, exécutez la commande suivante :
++
+[,bash]
+----
+rm -r /usr/local/bin/sts
+----
+
+. Pour supprimer la configuration de la CLI de `sts`, exécutez la commande suivante :
++
+[,bash]
+----
+rm -r ~/.config/stackstate-cli
+----
+
+Le CLI `sts` et toute la configuration associée sont maintenant supprimés pour l'utilisateur actuel.
+--
+
+Docker::
++
+--
+Pour supprimer l'image CLI et les conteneurs, exécutez :
+
+[,bash]
+----
+docker rmi -f stackstate/stackstate-cli2
+----
+--
+====
+
+== Source ouverte
+
+Le CLI {stackstate-product-name} `sts` est open source et peut être trouvé sur GitHub à l'adresse suivante :
+
+* https://github.com/stackvista/stackstate-cli
