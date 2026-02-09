@@ -1,0 +1,41 @@
+= Les équipes
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Configurer les notifications Teams
+
+Pour envoyer des notifications à Slack, procédez comme suit :
+
+. <<_create_a_power_automate_flow,Créer un flux Power Automate>>
+. <<_add_and_test_the_channel,Ajouter et tester le canal>>
+
+=== Créer un flux Power Automate
+
+Dans Teams, créez un nouveau flux à partir du modèle "Webhook".
+
+image::k8s/notifications-teams-webhook-template.png[Créer un flux à partir d'un modèle de Webhook]
+
+Sélectionnez l'équipe et le canal dans lesquels vous souhaitez que la notification soit collée et enregistrez le flux.
+
+Modifiez le flux et cliquez sur la case "Lorsqu'une demande de webhook Teams est reçue".
+Copiez le paramètre HTTP URL.
+
+image::k8s/notifications-teams-select-url.png[Sélectionner une URL dans le flux]
+
+== Ajouter et tester le canal
+
+image::k8s/configure-teams-channel.png[Configurer le canal Teams]
+
+Dans SUSE Observability, vous pouvez désormais utiliser l'URL Webhook pour créer un canal de notification.
+
+== Messages d'équipes pour les notifications
+
+Lorsqu'une notification est ouverte ou fermée, un nouveau message Teams est créé dans le canal.
+
+.Messages d'équipes pour une notification d'ouverture et de fermeture
+image::k8s/notifications-teams-example.png[Exemple d'équipe,75%]
+
+== En rapport
+
+* xref:/use/alerting/notifications/troubleshooting.adoc[Dépannage]
