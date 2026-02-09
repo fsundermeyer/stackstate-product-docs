@@ -1,0 +1,21 @@
+= Page analytique
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+La page d'analyse fournit une interface puissante et flexible pour interroger et analyser vos données d'observabilité à l'aide de xref:/develop/reference/k8sTs-stql_reference.adoc[requêtes STQL].
+Cet environnement interactif vous permet d'aller au-delà des tableaux de bord prédéfinis et d'obtenir des informations plus approfondies sur la santé, les performances et les dépendances de votre environnement dynamique.
+
+[CAUTION]
+====
+*La page Analytics est obsolète, mais vous pouvez toujours l'activer en configurant des autorisations spécifiques. Toutefois, nous recommandons vivement d'utiliser les StackPacks pour améliorer l'observabilité et l'analyse, car ils constituent une alternative plus robuste et activement soutenue.*
+
+Deux autorisations sont nécessaires pour activer la page d'analyse :
+
+* `access-analytics`
+* `execute-scripts`
+
+Plus d'informations : xref:/setup/security/rbac/rbac_permissions.adoc[Gestion des autorisations]
+
+====
+
