@@ -1,0 +1,29 @@
+= Dépannage des notifications
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Lorsqu'un canal de notification ne parvient pas à envoyer des notifications, l'aperçu des notifications affiche un statut d'erreur. Pour vérifier les erreurs :
+
+. Cliquez sur la notification
+. Le haut de la page affiche une bannière avec un résumé des erreurs
+. Faites défiler vers le bas jusqu'aux chaînes, cliquez sur le lien "erreur" pour la ou les chaînes concernées afin d'ouvrir les détails de l'erreur.
+
+== Erreurs courantes
+
+=== Slack
+
+Les erreurs de Slack contiennent généralement un code d'erreur :
+
+* `token_revoked`, `token_expired` ou `missing_scope`: Ces codes d'erreur indiquent tous un problème d'autorisation de SUSE Observability à publier des messages sur Slack. Pour résoudre ces problèmes, recréez le canal pour réautoriser SUSE Observability avec Slack de manière à ce que toutes les autorisations requises soient accordées.
+* Pour d'autres codes d'erreur, voir https://api.slack.com/automation/cli/errors[Codes d'erreur de l'API Slack].
+
+=== HTTP
+
+La plupart des canaux, en particulier le webhook, attendent une réponse HTTP avec le statut 200 OK. Toute autre réponse est considérée comme une erreur. Les erreurs HTTP contiennent un message, généralement court, et le code d'état reçu au lieu de 200 OK.
+
+Vérifiez que les URL et les jetons configurés sont corrects et, dans le cas du webhook, que les requêtes POST sont traitées correctement et renvoient une réponse 200 OK.
+
+=== Autres
+
+Si l'erreur est de type "Autre", SUSE Observability n'est probablement pas en mesure de se connecter au service externe ou au webhook. Vérifiez que l'URL est correcte, qu'elle peut être résolue et que SUSE Observability peut y accéder.
