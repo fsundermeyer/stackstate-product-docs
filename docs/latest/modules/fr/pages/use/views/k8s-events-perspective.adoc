@@ -1,0 +1,50 @@
+= Perspective des événements
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+La perspective des événements montre les événements et les changements pour les éléments de la xref:/use/views/k8s-view-structure.adoc[vue] actuelle ou de la topologie filtrée.
+
+image::k8s/k8s-events-perspective.png[Perspectives d'événements]
+
+== Filtrer les événements affichés
+
+Les événements affichés peuvent être filtrés dans le menu des *filtres* situé dans le coin supérieur droit de l'interface utilisateur de la vue. Les filtres d'événements seront appliqués à tous les événements affichés dans la vue : la perspective des événements, les perspectives des faits saillants et la ligne de temps.
+
+=== Filtrer par propriétés
+
+Les xref:/use/views/k8s-filters.adoc#_filter_events[filtres d'événements] définis dans le menu des *filtres* peuvent être utilisés pour affiner les événements affichés en fonction de la catégorie d'événement, du type, du système source et des balises.
+
+=== Filtrer par composant source
+
+Les xref:/use/views/k8s-filters.adoc#_filter_topology[filtres de topologie] définis dans le menu des *filtres* définissent les éléments (composants et relations) pour lesquels les événements seront affichés. Seuls les événements relatifs aux éléments qui correspondent aux filtres topologiques appliqués ou à la vue elle-même seront visibles. Vous pouvez ajuster les composants pour lesquels les événements sont affichés en mettant à jour les filtres de topologie.
+
+=== Filtrer par horodatage
+
+La perspective des événements et les listes d'événements affichent les événements qui correspondent à l'xref:/use/stackstate-ui/k8sTs-timeline-time-travel.adoc#_telemetry_interval[intervalle de télémétrie] sélectionné dans la ligne de temps au bas de l'interface utilisateur de la vue. Ajustez l'intervalle de télémétrie pour n'afficher que les événements qui ont été générés à ce moment-là.
+
+== Voyage dans le temps
+
+La perspective des événements répertorie les événements qui ont été générés :
+
+* par les éléments de la topologie qui existaient au moment spécifié par le xref:/use/stackstate-ui/k8sTs-timeline-time-travel.adoc#_topology_time[temps de la topologie].
+* dans l'xref:/use/stackstate-ui/k8sTs-timeline-time-travel.adoc#_telemetry_interval[intervalle de télémétrie] sélectionné
+
+Cela vous permet de vous déplacer dans le temps pour accéder aux événements générés par les éléments topologiques disponibles à un moment précis de l'histoire et aux événements générés au cours d'une fenêtre temporelle spécifique. La sélection d'une nouvelle topologie permet de remonter dans le temps jusqu'à la topologie qui était disponible à ce moment de l'histoire. La liste des événements sera mise à jour pour inclure les événements des éléments topologiques disponibles à ce moment-là et dans l'intervalle de télémétrie sélectionné.
+
+Par exemple :
+
+* Réglez l'*intervalle de télémétrie* pour augmenter ou diminuer le nombre d'événements affichés.
+* Ajustez le *temps de la top* ologie pour voyager dans le temps jusqu'à la topologie disponible à ce moment de l'histoire. Les événements générés dans l'intervalle de télémétrie sélectionné par les éléments de la topologie qui existaient au moment de la topologie seront affichés.
+* Cliquez sur un horodatage dans les *propriétés d'* un événement pour passer à l'heure de cette topologie. La liste des événements sera mise à jour pour afficher les événements qui ont été générés :
+ ** par les éléments de la topologie qui existaient à ce moment-là.
+ ** dans l'intervalle de télémétrie spécifié (celui-ci sera ajusté pour correspondre à l'horodatage sélectionné si nécessaire).
+
+image::k8s/k8s-events-perspective-timeline.png[Chronologie des événements]
+
+== Voir aussi
+
+* xref:/use/views/k8s-filters.adoc[Filtrage des données]
+* xref:/use/views/k8s-view-structure.adoc[Travailler avec les vues de SUSE Observability]

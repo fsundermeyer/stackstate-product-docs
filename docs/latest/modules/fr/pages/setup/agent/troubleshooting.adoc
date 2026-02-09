@@ -1,0 +1,20 @@
+= Dépannage
+:revdate: 2025-10-09
+:page-revdate: {revdate}
+
+== Désactiver le suivi d'un protocole réseau spécifique dans l'agent de processus
+
+Pour désactiver le traçage d'un protocole réseau spécifique dans l'agent de processus, configurez le paramètre de diagramme de Helm `processAgent.disabledProtocols`. L'exemple suivant désactive les protocoles `http2` et `postgres`:
+
+----
+--set "processAgent.disabledProtocols[0]=http2" \
+--set "processAgent.disabledProtocols[1]=postgres"
+----
+
+== Désactiver l'agent de traitement
+
+Si l'agent de traitement n'est pas pris en charge dans votre environnement, désactivez-le via le paramètre de diagramme de Helm `nodeAgent.containers.processAgent.enabled`:
+
+----
+--set nodeAgent.containers.processAgent.enabled=false
+----
