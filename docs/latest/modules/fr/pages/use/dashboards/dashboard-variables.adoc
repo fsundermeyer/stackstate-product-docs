@@ -1,0 +1,115 @@
+= Variables du tableau de bord
+:revdate: 2025-11-24
+:page-revdate: {revdate}
+:description: Utiliser des variables pour créer des tableaux de bord dynamiques.
+
+En configurant des variables pour un tableau de bord, vous pouvez créer des tableaux de bord avec des widgets dynamiques. Les variables permettent de réutiliser une même définition de tableau de bord pour différents cas d'utilisation. 
+
+== Visualisation des variables du tableau de bord
+Dans la barre de navigation supérieure, utilisez le menu déroulant situé à côté du bouton "Save..." et cliquez sur "Edit dashboard variables".
+
+image::dashboards/open-variables-drawer.png[Ajout de tous les éléments épinglés]
+
+=== Variables intégrées
+Certaines variables sont intégrées à {stackstate-product-name}. Les noms de ces variables sont réservés et vous ne pouvez pas donner les mêmes noms à vos propres variables.
+
+Pour afficher toutes les variables intégrées, cliquez sur l'accordéon intitulé "SUSE Observability PromQL variables".
+
+== Ajout d'une nouvelle variable
+
+. Ouvrez le tiroir "Editer les variables du tableau de bord". 
+. Cliquez sur le bouton "Ajouter une variable" pour ouvrir un deuxième tiroir dans lequel vous pouvez configurer la nouvelle variable.
+
+image::dashboards/variable-drawer-example.png[Un exemple de variable]
+
+Les champs de configuration d'une variable sont les suivants :
+
+|===
+| Nom du champ | Description
+
+| Nom
+| L'identifiant du nom de la variable. Il s'agit du nom que vous pouvez <<using-variables, utiliser dans les champs compatibles.>>
+
+| Afficher l'étiquette
+| Un nom convivial pour la variable qui est affiché sur le tableau de bord lors de la <<selecting-variables, sélection de la variable>>. Cela permet d'identifier la variable.
+
+| Description
+| Une description permettant de comprendre l'objectif de la variable. Cette description est affichée dans le tiroir "Editer les variables du tableau de bord".
+
+| Type
+| Le type de la variable.
+|===
+
+== Types de variables
+=== Variable de texte
+
+Une variable texte contient du texte simple. Vous pouvez définir une valeur initiale et rendre la variable en lecture seule.
+
+=== Variable de liste
+
+Une variable de type liste a des valeurs possibles qui sont définies par le champ "Source". Chaque type de source fournit des champs supplémentaires qui vous permettent de réduire les valeurs possibles pour la variable.
+
+|===
+| Type de source | Champs sources
+
+| Noms des étiquettes métriques
+| Entrez zéro ou plusieurs sélecteurs de série pour affiner les noms d'étiquettes métriques présents.
+
+| Valeurs des étiquettes métriques
+| Saisissez un nom d'étiquette métrique et zéro ou plusieurs sélecteurs de série pour affiner les valeurs d'étiquette métrique présentes.
+
+| Métrique PromQL
+| Saisissez une requête PromQL personnalisée et un nom d'étiquette. Les valeurs possibles qui en résultent sont les valeurs correspondant au nom de l'étiquette donnée.
+
+| Liste statique
+| Saisissez une ou plusieurs paires d'étiquettes et de valeurs pour construire une liste statique de valeurs possibles.
+|===
+
+Au fur et à mesure que vous modifiez le type de source et les champs correspondants, l'aperçu situé à droite du tiroir se met à jour avec les nouvelles valeurs possibles.
+
+
+==== Paramètres des variables de la liste commune
+
+Toutes les sources de variables de liste ont également les paramètres communs suivants :
+
+|===
+| Nom du champ | Description
+
+| Trier
+| Trier les valeurs de la liste. Par exemple, par ordre alphabétique ou numérique.
+
+| Autoriser des valeurs multiples
+| Permettre aux utilisateurs de sélectionner plus d'une valeur à la fois.
+
+| Activer l'option "Tout inclure"
+| Ajoute un élément pour sélectionner toutes les valeurs dans la liste que l'utilisateur voit. Vous pouvez éventuellement spécifier une valeur personnalisée pour cet élément ou la laisser être générée automatiquement. 
+|===
+
+== Utilisation de variables [[using-variables]]
+Une fois qu'une variable est définie, elle peut être utilisée pour remplir différents champs du tableau de bord :
+
+* Autres variables
+* Nom et description du widget
+* Champs de liens de widgets : URL, nom et info-bulle
+* Champs de requête du widget : Expression PromQL, alias et pas minimum
+* Editeur du widget Markdown
+
+Pour utiliser une variable dans un champ compatible, utilisez le nom de la variable entouré de `${}` (par exemple, `$\{my_variable}`). La valeur de la variable est interpolée.
+
+=== Comment les variables sont interpolées
+Les variables de texte sont interpolées comme la chaîne de caractères écrite dans la zone de texte de la variable.
+
+De même, les variables de liste qui n'autorisent pas les valeurs multiples ou qui n'incluent pas "Tout" sont interpolées comme la valeur de l'élément sélectionné dans la liste.
+
+Les variables de liste qui autorisent plusieurs valeurs sont interpolées sous la forme d'une expression régulière capturant le groupe des valeurs sélectionnées (par exemple `(value_1|value_2)`), qu'une ou plusieurs options soient sélectionnées.
+
+Les variables de liste pour lesquelles l'option "Tout inclure" est activée et sélectionnée pour cette variable seront interpolées comme suit :* la valeur personnalisée si elle est définie, ou * une expression régulière générée capturant un groupe de toutes les valeurs possibles (par exemple `(value_1|value_2|value_3)`).
+
+Vous pouvez utiliser le matcheur d'expressions régulières PromQL `=~` lorsque vous consommez des variables interpolées en tant que groupes de capture d'expressions régulières.
+
+== Sélection des variables [[selecting-variables]]
+Les variables sont listées en haut du tableau de bord, à côté du sélecteur d'intervalle de temps. Seules les premières variables sont affichées. Pour voir le reste des variables, utilisez le menu déroulant "Plus".
+
+Cliquez sur une variable pour ouvrir son sélecteur et sélectionnez les valeurs que vous souhaitez afficher dans le tableau de bord.
+
+Lorsque vous sélectionnez différentes valeurs, les widgets utilisant la variable réagissent aux changements.
