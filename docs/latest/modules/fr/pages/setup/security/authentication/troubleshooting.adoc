@@ -1,0 +1,40 @@
+= Dépannage de l'authentification et de l'autorisation
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+Lorsque l'authentification ou l'autorisation échoue, cela est généralement dû à une mauvaise configuration du fournisseur et de SUSE Observability. Pour faciliter le dépannage, il est possible d'activer la journalisation de débogage sur SUSE Observability pour l'authentification et l'autorisation en particulier.
+
+[CAUTION]
+====
+Désactivez à nouveau la journalisation de débogage dès que vous avez terminé le dépannage, car il est très probable que la journalisation de débogage contienne des secrets et/ou des informations personnelles.
+====
+
+
+Pour activer la journalisation de débogage, copiez/collez le snippet yaml suivant dans un fichier `debug-auth.yaml`.
+
+[,yaml]
+----
+stackstate:
+  components:
+    server:
+      additionalLogging: |
+        <logger name="org.pac4j.core.engine" level="DEBUG"/>
+        <logger name="org.pac4j.oidc.profile.creator" level="DEBUG"/>
+        <logger name="org.pac4j.oidc.credentials.authenticator" level="DEBUG"/>
+    api:
+      additionalLogging: |
+        <logger name="org.pac4j.core.engine" level="DEBUG"/>
+        <logger name="org.pac4j.oidc.profile.creator" level="DEBUG"/>
+        <logger name="org.pac4j.oidc.credentials.authenticator" level="DEBUG"/>
+----
+
+Exécutez maintenant la commande `helm upgrade` que vous avez utilisée précédemment, mais incluez ce fichier yaml supplémentaire (donc `helm upgrade .... --values debug-auth.yaml`) pour activer la journalisation de débogage. Aucun pod ne sera redémarré, les changements de configuration de la journalisation seront chargés automatiquement après environ 30 secondes.
+
+Pour désactiver la journalisation de débogage, exécutez à nouveau la commande `helm upgrade ....` en omettant `--values debug-auth.yaml`. Après 30 secondes, la configuration de journalisation mise à jour est chargée et la journalisation de débogage s'arrête.
+
+
+== Résolution des problèmes liés aux autorisations
+
+* xref:/setup/security/rbac/rbac_permissions.adoc#_list_subjects_for_a_user[Inspecter les sujets utilisateurs] (utilisateur et rôles) et vérifier la configuration en fonction du modèle d'authentification utilisé.
+* xref:/setup/security/rbac/rbac_permissions.adoc#_show_granted_permissions[Inspecter l'autorisation d'un sujet] et vérifier la configuration en fonction du modèle d'autorisation utilisé.
