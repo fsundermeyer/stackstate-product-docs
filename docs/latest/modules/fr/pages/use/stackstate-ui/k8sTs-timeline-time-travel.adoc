@@ -1,0 +1,126 @@
+= Chronologie et voyage dans le temps
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+La ligne de temps située en bas de l'interface utilisateur de SUSE Observability vous permet de remonter dans le temps jusqu'à l'état de la topologie à un moment précis dans le passé. Vous pouvez ensuite naviguer dans toutes les données télémétriques disponibles pour l'instantané de topologie sélectionné. Les diagrammes de santé et d'événements de la ligne de temps donnent un aperçu de l'état de la topologie pendant l'intervalle de télémétrie sélectionné.
+
+image::k8s/k8s-timeline.png[Chronologie]
+
+== Chronologie
+
+=== Intervalle de télémétrie
+
+L'intervalle de télémétrie spécifie la fenêtre temporelle pour laquelle les événements, les mesures et les traces sont disponibles dans les perspectives SUSE Observability. Elle se déroule de gauche à droite sur la ligne de temps.
+
+image::v51_telemetry_interval.png[Intervalle de télémétrie]
+
+L'intervalle de télémétrie sélectionné peut être soit relatif (mode direct), soit défini sur un intervalle de télémétrie personnalisé (mode voyage dans le temps). Par défaut, l'intervalle de télémétrie est défini sur un intervalle de télémétrie relatif - en mode direct et affiche la télémétrie de la dernière heure. Vous pouvez effectuer un zoom avant/arrière ou définir un intervalle de télémétrie personnalisé pour visualiser la télémétrie à partir d'un point précis dans le temps.
+
+==== Définir l'intervalle de télémétrie
+
+[NOTE]
+====
+
+* L'intervalle de télémétrie peut être de 6 mois au maximum.
+* Lorsqu'un intervalle de télémétrie personnalisé est défini pour l'intervalle de télémétrie, SUSE Observability met en pause le <<_topology_time,temps de la topologie>> et entre en <<_time_travel,mode de voyage dans le temps>>.
+====
+
+
+L'intervalle de télémétrie peut être défini de la manière suivante :
+
+* *Zoom avant*
+
+image::v51_timeline_click_drag.png[Cliquez et glissez sur la ligne de temps pour définir un intervalle de télémétrie personnalisé sur votre sélection.]
+
+* *Zoom arrière*
+
+image::v51_telemetry_interval_zoom_out.png[Cliquez sur la loupe pour doubler la taille de l'intervalle de télémétrie.]
+
+* *Utiliser les flèches du cavalier d'intervalle de télémétrie*
+
+image::v51_telemetry_interval_jumper.png[Cliquez sur les flèches du cavalier temporel pour avancer ou reculer l'intervalle de télémétrie dans le temps.]
+
+* *Définir un intervalle de télémétrie relatif ou personnalisé*
+
+image::v51_timeline_telemetry_interval.png[Utilisez la fenêtre contextuelle "Définir l'intervalle de télémétrie" pour spécifier un intervalle de télémétrie.]
+
+=== Durée de la topologie
+
+La topologie de SUSE Observability est basée sur un instantané de vos environnements tels qu'ils ont été observés à ce moment-là. Le moment à partir duquel cet instantané est pris est spécifié par l'heure de la topologie. Par défaut, SUSE Observability est en mode "live" et l'heure de la topologie est réglée sur l'heure actuelle. Vous pouvez remonter dans <<_time_travel,le temps>> jusqu'à un état antérieur de la topologie en sélectionnant une durée de topologie personnalisée. Cela vous permet d'étudier un problème à un moment donné. Même si un pod n'existe plus depuis longtemps, vous pouvez toujours voir comment il était connecté, ses journaux, ses événements, les ressources connexes, les événements et bien d'autres choses encore.
+
+image::v51_topology_time.png[Durée de la topologie]
+
+Sur la ligne de temps, l'heure de la topologie sélectionnée est indiquée par la tête de lecture - une ligne noire avec l'heure de la topologie actuelle en haut. Il est également spécifié dans la boîte de *temps Topologie* en haut de la ligne de temps.
+
+==== Définir la durée de la topologie
+
+La durée de la topologie peut être réglée de la manière suivante :
+
+* *Cliquez sur la ligne de temps*
+
+image::v51_topology_time_timeline.png[Cliquez n'importe où sur la ligne de temps pour fixer l'heure de la topologie à ce moment-là.]
+
+* *Utiliser les flèches du cavalier de temps topologique*
+
+image::v51_topology_time_jumper.png[Cliquez sur les flèches du cavalier de temps topologique pour avancer ou reculer le temps topologique jusqu'à la prochaine série d'événements.]
+
+* *Définir une durée de topologie personnalisée*
+
+image::v51_topology_time_popup.png[Utilisez la fenêtre contextuelle "Définir la durée de la topologie" pour spécifier une durée de topologie.]
+
+* *Cliquez sur un horodatage*
+
+image::v51_topology_time_timestamp.png[Cliquez sur un horodatage pour passer à l'heure spécifique de la topologie.]
+
+==== Temps de topologie en dehors de l'intervalle de télémétrie
+
+Si le temps topologique sélectionné est en dehors de l'<<_telemetry_interval,intervalle de télémétrie>> actuellement sélectionné, le message "Le temps topologique est en dehors de l'intervalle de télémétrie actuel" s'affiche et la case *Temps topologique* en haut de la ligne de temps est surlignée en noir. Comme la ligne de temps montre l'intervalle de télémétrie de gauche à droite, la tête de lecture indiquant l'heure de la topologie actuelle ne sera pas visible sur la ligne de temps.
+
+image::v51_topology_time_outside_telemetry_interval.png[Temps de topologie en dehors de l'intervalle de télémétrie]
+
+Vous pouvez toujours consulter la topologie et la télémétrie comme prévu :
+
+* La xref:/use/views/k8s-topology-perspective.adoc[perspective topologique] permet de visualiser l'état de la topologie au moment choisi.
+* Dans toutes les perspectives, la télémétrie affichée est celle qui a été générée dans l'intervalle de télémétrie sélectionné et qui concerne les éléments de la topologie qui existaient à l'heure de la topologie sélectionnée.
+
+==== Mode en direct
+
+Pour arrêter le voyage dans le temps et ramener la topologie en mode direct, cliquez sur *Go live* ou *BACK TO LIVE* en haut de l'écran.
+
+image::v51_timeline_go_live.png[En direct]
+
+=== Santé
+
+L'état de santé d'une vue pendant l'intervalle de télémétrie sélectionné est affiché sous forme de couleur dans la ligne de temps *Santé.* 
+
+Pour les ressources individuelles, l'état de santé est affiché au fil du temps ; une ligne grise est affichée dans la vue d'ensemble.
+
+image::v51_timeline_no_health_state.png[État de santé non disponible]
+
+=== Evénements
+
+La ligne *Événements* de la chronologie présente un diagramme à barres indiquant le nombre d'événements générés à chaque moment. Cela vous permet de voir des moments du passé où il y a eu beaucoup d'activités. Notez que seuls les événements générés par les éléments de la topologie qui existaient au <<_topology_time,moment où la topologie>> a été sélectionnée sont affichés.
+
+Pour zoomer sur une barre d'événements intéressante, cliquez et faites glisser pour sélectionner un intervalle de télémétrie plus petit autour d'elle sur la ligne de temps.
+
+image::v51_timeline_click_drag.png[Cliquer et faire glisser pour sélectionner un intervalle de télémétrie]
+
+[NOTE]
+====
+Un simple clic sur la ligne de temps permet de déplacer la tête de lecture à ce point dans le temps, et donc de voyager dans le temps jusqu'à l'état de la topologie au moment sélectionné pour la <<_topology_time,topologie>>. Seuls les événements générés par les éléments de la topologie qui existaient au moment où la topologie a été sélectionnée seront désormais affichés.
+====
+
+
+== Voyage dans le temps
+
+Dans chacune des perspectives SUSE Observability, vous pouvez être en mode réel ou dans le passé. En mode "live", SUSE Observability interroge en permanence les utilisateurs à la recherche de nouvelles données. Lorsque vous voyagez dans le temps par le biais de la topologie ou de la télémétrie, vous travaillez en fait avec un instantané de votre infrastructure. Les données disponibles sont basées sur deux sélections :
+
+* <<_topology_time,Heure de la topologie>> - un moment précis dans le temps pour lequel vous souhaitez récupérer un instantané de vos ressources Kubernetes.
+* <<_telemetry_interval,Intervalle de télémétrie>> - intervalle de temps pour lequel vous souhaitez voir la télémétrie et les traces.
+
+Pour arrêter le voyage dans le temps et revenir au mode en direct, cliquez sur *Go live* ou *BACK TO LIVE* en haut de l'écran.
+
+image::v51_timeline_go_live.png[En direct]
