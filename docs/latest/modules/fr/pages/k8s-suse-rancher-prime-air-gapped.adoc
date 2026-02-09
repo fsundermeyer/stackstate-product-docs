@@ -1,0 +1,192 @@
+= Installation de SUSE Observability en mode "Air-Gapped
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Ce document fournit un guide étape par étape pour l'installation de SUSE Observability à l'aide des cartes Helm dans un environnement air-gapped. Le processus consiste à préparer les images Docker et les diagrammes Helm nécessaires sur un hôte disposant d'un accès à Internet, à les transférer sur un hôte au sein d'un réseau privé, à copier les images Docker dans un registre privé, puis à déployer les diagrammes Helm.
+
+== Conditions préalables
+
+=== Sur l'hôte local (accès Internet)
+
+* *Système d'exploitation*: Linux ou MacOS
+* *Outils installés*:
+ ** https://www.docker.com/products/docker-desktop/[Docker]
+ ** https://helm.sh/docs/intro/install/[Barre cli]
+ ** Des scripts pour télécharger des images Docker à partir du registre source (des liens seront fournis plus loin dans ce guide).
+* *Accès à l'Internet*: Nécessaire pour extraire des images Docker de Quay.io et des graphiques Helm de ChartMuseum.
+
+=== Sur l'hôte du réseau privé
+
+* *Accès*: Accès SSH à l'hôte.
+* *Outils installés*:
+ ** https://www.docker.com/products/docker-desktop/[Docker]
+ ** https://helm.sh/docs/intro/install/[Barre cli]
+ ** Des scripts pour télécharger des images Docker à partir du registre source (des liens seront fournis plus loin dans ce guide).
+ ** Accès au réseau et informations d'identification pour télécharger des images vers un registre Docker privé.
+ ** Un Kubeconfig configuré pour installer les cartes Helm sur les clusters cibles.
+
+== Préparation des images Docker et des diagrammes Helm
+
+Exécutez les commandes suivantes sur l'hôte local pour obtenir les images Docker et les cartes Helm requises :
+
+*Ajout des dépôts Helm au cache local Helm :*
+
+[,bash]
+----
+# Adding the Helm repository for SUSE Observability
+helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+helm repo update
+----
+
+*Récupération des dernières versions des graphiques. Ces commandes permettent de télécharger les archives TGZ des cartes :*
+
+[,bash]
+----
+# Downloading the chart for SUSE Observability
+# The file will be named suse-observability-k8s-A.B.C.tgz
+helm fetch suse-observability/suse-observability
+
+# Downloading the helper chart that generates values for SUSE Observability
+# The file will be named suse-observability-values-L.M.N.tgz
+helm fetch suse-observability/suse-observability-values
+----
+
+*Téléchargement des scripts Bash pour enregistrer les images Docker :*
+
+[,bash]
+----
+# o11y-get-images.sh
+curl -LO https://raw.githubusercontent.com/StackVista/helm-charts/master/stable/suse-observability/installation/o11y-get-images.sh
+# o11y-save-images.sh
+curl -LO https://raw.githubusercontent.com/StackVista/helm-charts/master/stable/suse-observability/installation/o11y-save-images.sh
+
+# Make the scripts executable
+chmod a+x o11y-get-images.sh o11y-save-images.sh
+----
+
+*Extraction et sauvegarde des images Docker :*
+
+[,bash]
+----
+# Extract the list of images from the Helm chart and save it to a file.
+./o11y-get-images.sh -f suse-observability-A.B.C.tgz > o11y-images.txt
+----
+
+[NOTE]
+====
+Remplacez `suse-observability-A.B.C.tgz` par le nom de fichier de l'archive graphique téléchargée précédemment.
+====
+
+
+[,bash]
+----
+# Save Docker images to an archive.
+# The script expects the file o11y-images.txt to contain the list of images used by SUSE Observability.
+# The Docker images will be saved to o11y-images.tar.gz.
+./o11y-save-images.sh -i o11y-images.txt -f o11y-images.tar.gz
+----
+
+== Copie des fichiers nécessaires sur l'hôte distant
+
+Copiez les fichiers suivants de l'hôte local vers l'hôte du réseau privé :
+
+* o11y-images.txt (Liste des images requises par la carte SUSE Observability)
+* o11y-images.tar.gz (Une archive avec les images Docker de SUSE Observability)
+* https://raw.githubusercontent.com/StackVista/helm-charts/master/stable/suse-observability/installation/o11y-load-images.sh[o11y-load-images.sh] (script Bash pour télécharger des images Docker dans un registre)
+* Cartes de barre téléchargées précédemment :
+ ** suse-observability-A.B.C.tgz
+ ** suse-observability-values-L.M.N.tgz
+
+== Restauration des images Docker de l'archive vers le registre privé
+
+*Téléchargez les images sur le registre privé :*
+
+[,bash]
+----
+# Load Docker images from the archive and push them to the private registry.
+# Replace <private-registry> with your private registry's URL.
+export DST_REGISTRY_USERNAME="..."
+export DST_REGISTRY_PASSWORD="..."
+./o11y-load-images.sh -d registry.example.com:5043 -i o11y-images.txt -f o11y-images.tar.gz
+----
+
+[NOTE]
+====
+Si le registre de destination n'utilise pas l'authentification, les variables d'environnement `DST_REGISTRY_USERNAME` et `DST_REGISTRY_PASSWORD` ne doivent pas être configurées ou doivent avoir des valeurs vides.
+====
+
+
+== Installation de SUSE Observability
+
+*Valeurs de barre personnalisées*
+
+L'installation des cartes SUSE Observability Helm dans un environnement air-gapped nécessite de remplacer les registres utilisés dans les URL des images Docker. Ceci peut être réalisé en personnalisant les valeurs de Helm.
+
+Créez un fichier private-registry.yaml avec le contenu suivant :
+
+[,yaml]
+----
+global:
+  imageRegistry: registry.example.com:5043
+----
+
+Ce guide suit la configuration de l'xref:/k8s-suse-rancher-prime#_installation[installation], mais au lieu d'utiliser les dépôts/registres Helm et Docker disponibles publiquement, il utilise des archives Helm préchargées et des registres Docker privés.
+
+*Commande pour générer le fichier des valeurs de la carte de barre :*
+
+.helm_template.sh
+[,text]
+----
+export VALUES_DIR=.
+helm template \
+    --set license='<licenseKey>' \
+    --set baseUrl='<baseURL>' \
+    --set rancherUrl='<rancherURL>' \
+    --set sizing.profile='<sizing.profile>' \
+    suse-observability-values suse-observability-values-L.M.N.tgz \
+    --output-dir $VALUES_DIR
+----
+
+
+Si le registre privé nécessite une authentification, incluez le nom d'utilisateur et le mot de passe du secret d'extraction comme suit :
+
+.helm_template.sh
+[,text]
+----
+export VALUES_DIR=.
+helm template \
+    --set license='<licenseKey>' \
+    --set baseUrl='<baseURL>' \
+    --set rancherUrl='<rancherURL>' \
+    --set sizing.profile='<sizing.profile>' \
+    --set pullSecret.username='trial' \
+    --set pullSecret.password='trial' \
+    suse-observability-values suse-observability-values-L.M.N.tgz \
+    --output-dir $VALUES_DIR
+----
+
+
+*Déploiement de la carte SUSE Observability Helm :*
+
+.helm_deploy.sh
+[,text]
+----
+helm upgrade --install \
+    --namespace suse-observability \
+    --create-namespace \
+    --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+    --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+    --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+    --values private-registry.yaml \
+    suse-observability \
+    suse-observability-A.B.C.tgz
+----
+
+
+*Validation du déploiement :*
+
+[,bash]
+----
+kubectl get pod -n suse-observability
+----

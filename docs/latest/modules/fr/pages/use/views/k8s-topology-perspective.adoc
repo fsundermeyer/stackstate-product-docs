@@ -1,0 +1,120 @@
+= Perspective topologique
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+La perspective topologique affiche les composants de votre paysage informatique et leurs relations.
+
+image::k8s/k8s-topology-perspective.png[Perspective topologique]
+
+== Légende
+
+Cliquez sur le bouton Légende ( ?) en bas à droite de l'écran (juste en dessous des commandes de zoom) pour afficher une explication des icônes et des couleurs utilisées dans la visualisation de la topologie.
+
+image::k8s/k8s-topology-perspective-legend.png[Légende de la perspective topologique]
+
+== Composants
+
+La perspective topologique montre les composants et les relations filtrés dans une xref:/use/views/k8s-view-structure.adoc[vue] sélectionnée. Les composants pour lesquels un ou plusieurs xref:/use/alerting/k8s-monitors.adoc[moniteurs] sont configurés signalent un état de santé calculé.
+
+* Sélectionnez un composant pour afficher des informations détaillées sur le composant dans l'onglet Détails *du* panneau de droite - *Détails du composant*.
+* Survolez un composant pour ouvrir le <<_component_context_menu,menu contextuel du composant>>.
+
+=== Menu contextuel du composant
+
+Lorsque vous passez le pointeur de la souris sur un composant, le menu contextuel du composant s'affiche. Vous obtenez ainsi des informations sur le composant, notamment :
+
+* Le nom et le type du composant
+* État de santé
+* <<_actions,Actions>> spécifiques au composant
+* <<_shortcuts,Raccourcis>> spécifiques au composant
+
+image::k8s/k8s-component-contex-menu.png[Menu contextuel du composant]
+
+=== Actions
+
+Des actions peuvent être utilisées pour étendre la sélection de la topologie afin d'afficher toutes les dépendances pour le composant sélectionné. D'autres actions peuvent être disponibles pour des composants spécifiques, comme les actions de composants installés dans le cadre d'un StackPack.
+
+Une liste des *actions* disponibles est incluse dans l'onglet Détails du panneau de droite lorsque vous sélectionnez un composant - *Détails du composant.* Les actions sont également répertoriées dans le menu contextuel du composant, qui s'affiche lorsque vous passez le pointeur de la souris sur un composant.
+
+=== Raccourcis
+
+Les raccourcis vous permettent d'accéder directement à des informations détaillées sur le composant en question :
+
+* *Ouvrir la vue du composant* - Ouvre la xref:/use/views/k8s-component-views.adoc[vue du composant] pour ce composant. La vue des composants vous offre une vue d'ensemble de tout ce qui concerne ce composant et ses voisins directs, en fonction du type de composant que vous visualisez.
+* *Composant d'exploration* - Ouvre une xref:/use/views/k8s-explore-views.adoc[vue d'exploration] contenant uniquement ce composant. La vue d'exploration vous permet d'étudier un seul composant sous tous les angles sans avoir à ajuster les filtres d'affichage. Un double-clic sur un composant permet d'obtenir le même résultat.
+* *Afficher les propriétés* - Ouvre la fenêtre contextuelle des propriétés du composant. C'est la même chose que de cliquer sur *AFFICHER TOUTES LES PROPRIÉTÉS* dans l'onglet Détails du panneau de droite lorsque des informations détaillées sur un composant sont affichées - *Détails du composant*.
+
+== Relations
+
+Les relations montrent comment les composants de la topologie sont reliés entre eux. Ils sont représentés par une ligne pointillée ou pleine et comportent une pointe de flèche indiquant le sens de la dépendance entre les composants qu'ils relient.
+
+* *Relation directe* - composants reliés par un réseau et toute autre forme de relation directe
+* *Relation indirecte* - relations entre les composants dues au trafic réseau ou à d'autres dépendances, à l'exclusion des connexions vers et depuis des composants externes qui ne font pas partie de votre sélection topologique actuelle.
+* *Relation groupée* - combinaison de relations directes et de relations indirectes, reliant un ou plusieurs composants du groupe de composants.
+
+Sélectionnez une relation pour obtenir des informations détaillées à son sujet dans l'onglet Détails du panneau de droite.
+
+== Paramètres de visualisation
+
+La manière dont les composants et les relations sont affichés dans la perspective topologique peut être personnalisée dans le menu des paramètres de visualisation situé dans le coin supérieur droit du visualiseur.  Les paramètres de visualisation sont enregistrés avec la vue.
+
+=== Options de la grille
+
+Les composants de la perspective topologique peuvent éventuellement être organisés en grille, les couches étant regroupées en lignes et les domaines visualisés en colonnes. La grille est activée par défaut. Si aucune option de grille n'est sélectionnée, aucune grille n'est affichée.
+
+* *Organiser par couches* - Les composants d'une même couche sont placés sur la même ligne de la grille dans la visualisation de la topologie. Désactiver pour supprimer les lignes de la grille.
+* *Organiser par domaines* - Les composants d'un même domaine sont placés dans la même colonne de la grille dans la visualisation de la topologie. Désactiver pour supprimer les colonnes de la grille.
+
+Par exemple, si vous avez une visualisation d'un service commercial d'une pile provenant de quatre ou cinq sources différentes, la source (domaine) d'où ils proviennent ne sera pas si importante dans la visualisation. Il pourrait s'agir d'une bonne situation pour visualiser la topologie avec l'*organisation par domaines* désactivée.
+
+=== Groupement de composants
+
+Les visualisations de la topologie d'un grand nombre de composants peuvent devenir difficiles à lire. SUSE Observability peut regrouper des composants au sein d'une même vue. Le regroupement permet de réduire le nombre de composants et de relations à un niveau visuellement plus gérable.
+
+Le regroupement est activé par défaut et respecte les <<_grid_options,options de grille>> sélectionnées - les composants doivent se trouver dans la même ligne/colonne de la grille pour être regroupés.
+
+Trois types de regroupement sont disponibles, ou vous pouvez choisir de ne pas regrouper les composants :
+
+* *Pas de regroupement* - Les composants et les relations ne sont pas regroupés.
+* *Groupement automatique* - Les paramètres de groupement sont automatiquement ajustés pour que le nombre de composants ou de groupes de composants visualisés soit inférieur à 35.
+* *Groupe par état et par type* - Les composants de même type et de même état de santé sont regroupés en un seul groupe. Si l'un des composants groupés modifie son état de santé et ne correspond plus à l'état de santé du groupe de composants, il sort du groupe. Si d'autres composants du même type ont le même état de santé, un nouveau groupe sera créé.
+* *Groupe par type, état et relation* - Les composants sont regroupés comme dans le cas du *groupe par état et par type*, tout en conservant des informations sur les relations avec les composants extérieurs au groupe. Tous les composants d'un groupe ont la même connexion source et cible. Ceci est utile car le regroupement des composants uniquement par état et par type peut entraîner la perte de certaines informations sur les relations entre les composants du groupe.
+
+== Navigation
+
+=== Zoom avant et arrière
+
+Des boutons de zoom sont situés dans le coin inférieur droit du visualiseur de topologie. Le bouton *"plus"* permet de zoomer sur la topologie, le bouton " *moins* " de dézoomer. Entre les deux boutons se trouve le bouton " *Adapter à l'écran* " qui permet d'effectuer un zoom arrière afin que la topologie complète soit visible.
+
+=== Trouver un composant
+
+Vous pouvez localiser un composant spécifique dans la topologie en cliquant sur `CTRL` + `SHIFT` + `F` et en tapant les premières lettres du nom du composant. Vous pouvez également sélectionner l'icône de la loupe *Rechercher un composant* dans le coin inférieur droit du visualiseur de topologie.
+
+Voir la liste complète des xref:/use/stackstate-ui/k8sTs-keyboard-shortcuts.adoc[raccourcis clavier de SUSE Observability].
+
+=== Montrer la cause première
+
+S'il y a des composants avec des moniteurs qui sont en dehors de la vue mais qui peuvent influencer le composant dans la vue, la perspective topologique montrera l'état de santé de tous les composants affichés.
+
+* *Don't show root cause* - Ne pas afficher les causes profondes des composants affichés par les filtres de la topologie actuelle.
+* *Afficher uniquement la cause première* - N'afficher que les causes premières des composants affichés par les filtres de topologie actuels qui ont un état de santé propagé de `CRITICAL` ou `DEVIATING`. Les relations indirectes sont visualisées si un composant dépend directement d'au moins un composant invisible qui mène à la cause première.
+* *Afficher l'arbre complet des causes premières* - Affiche tous les chemins à partir des composants indiqués par les filtres de topologie actuels qui ont un état de santé `CRITICAL` ou `DEVIATING` propagé jusqu'à leurs causes premières.
+
+image::k8s/k8s-show-root-cause.png[Cause première]
+
+== Mode liste
+
+Les composants de la visualisation de la topologie peuvent également être affichés dans une liste au lieu d'un graphique :
+
+image::k8s/k8s-topology-perspective-list-mode.png[Filtrage (format liste)]
+
+=== Exporter en CSV
+
+En mode liste, la liste des composants peut être exportée sous forme de fichier CSV. Le fichier CSV comprend les détails `name`, `state`, `type` et `updated` pour chaque composant de la vue.
+
+. Dans la perspective de la topologie, cliquez sur l'icône *Mode liste* en haut à droite pour ouvrir la topologie en mode liste.
+. Cliquez sur *Télécharger au format CSV* en haut de la page.
+ ** La liste des composants sera téléchargée sous la forme d'un fichier CSV nommé `<view_name>.csv`.
