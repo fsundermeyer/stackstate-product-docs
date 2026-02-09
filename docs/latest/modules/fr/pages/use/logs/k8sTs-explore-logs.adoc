@@ -1,0 +1,45 @@
+= Explorer les grumes
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Naviguer vers Logs
+
+Vous pouvez explorer les journaux de conteneurs de tout environnement Kubernetes configuré avec l'envoi de journaux via l'interface utilisateur SUSE Observability.
+Pour ce faire, il suffit d'accéder au niveau `pod` à partir de l'un des paradigmes proposés (Services, Deployments, Stateful Sets, Daemon Sets, etc.) dans le menu Kubernetes situé à gauche.
+
+image::k8s/k8s-menu.png[Menu Paradigmes Kubernetes]
+
+Pour des raisons de simplicité et d'exhaustivité, l'exemple utilise directement le paradigme `Pods` et un pod contenant plusieurs conteneurs a été choisi afin de pouvoir faire la distinction entre les journaux des pods et ceux des conteneurs.  La vue Pod comporte plusieurs points d'entrée liés au journal.
+
+== Visualisation des journaux
+
+image::k8s/k8s-pod-view-node-agent.png[Vue du pod Kubernetes]
+
+Pour afficher tous les journaux associés à ce Pod, cliquez sur "Afficher tout", entouré en rouge.  Pour filtrer par type d'entrée de journal (Erreurs, Avertissements, Autres), sélectionnez l'un des éléments entourés en bleu.  L'histogramme montrant la proportionnalité entre les types d'enregistrement est entouré en vert.
+
+=== Le tiroir à bûches
+
+Le tiroir à journaux permet de naviguer dans les fichiers journaux de manière agréable à l'œil et d'améliorer l'expérience de dépannage.
+
+Par souci de simplicité, l'exemple ne traite que des sélections non filtrées, qui afficheront toutes les lignes de journal, de tous les conteneurs, de n'importe quel type d'entrée de journal.  La sélection de `View all` permet d'ouvrir le tiroir à journaux sans aucun filtrage :
+
+image::k8s/k8s-pod-view-log-drawer-no-filter.png[Vue du journal Kubernetes sans filtre]
+
+À partir de là, on peut commencer à se rapprocher du problème en appliquant des options aux filtres fournis (correspondance de la chaîne de recherche, gravité, conteneur, intervalle de la fenêtre d'enregistrement).  Plusieurs options sont disponibles pour le tri et les préférences d'affichage directement sous l'histogramme dans le tiroir des journaux.
+
+* L'option Correspondance de la chaîne de recherche prend en compte un terme de recherche et filtre toute ligne de journal qui ne le contient pas.
+* Les options de gravité sont `Any`, `Error`, `Warning` et `Other`. Si vous sélectionnez autre chose que `Any`, toutes les lignes de journal qui ne correspondent pas à la sélection seront exclues.
+* Les options de conteneur comprennent `Any`, et une liste de conteneurs dans le pod.  En sélectionnant autre chose que `Any`, la sortie sera limitée à celle produite par le conteneur sélectionné.
+* Les options d'intervalle de la fenêtre de journalisation seront une interface de sélection date-heure qui vous permettra de spécifier un intervalle `from` et `to`.  Si vous modifiez cette valeur par rapport à la valeur par défaut, toutes les entrées du journal qui se situent en dehors de la période sélectionnée seront exclues.
+
+A titre d'exemple, les quatre peuvent être vus en action ci-dessous :
+
+image::k8s/k8s-pod-view-log-drawer-with-filters.png[Vue du journal Kubernetes avec filtres]
+
+Les filtres suivants ont été appliqués à l'image ci-dessus :
+
+* Terme de recherche : `wrong type in json response`
+* Gravité : `Warning`
+* Conteneur : `node-agent`
+* Intervalle de la fenêtre d'enregistrement : Entre `02:00am` et `03:00am` de l'année en cours.

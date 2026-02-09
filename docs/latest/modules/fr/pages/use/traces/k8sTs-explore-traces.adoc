@@ -1,0 +1,11 @@
+= Explorer les traces
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Visualisation des traces
+
+image::k8s/k8s-pod-view-menu.png[Traces du menu Pod]
+
+Pour visualiser les traces associées au pod, au service, au déploiement, au statefulset ou au daemonset, cliquez sur l'élément de menu "Traces".
+Vous accédez ainsi à la xref:/use/views/k8s-traces-perspective.adoc[perspective Traces].
