@@ -1,0 +1,190 @@
+= Jetons de service
+:revdate: 2025-07-22
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+Grâce aux jetons de service, il est possible de s'authentifier auprès de SUSE Observability sans avoir de compte utilisateur associé. Ceci est utile dans les situations où vous souhaitez utiliser SUSE Observability à partir de services sans tête tels qu'un serveur CI. Dans un tel scénario, vous ne voulez généralement pas provisionner un compte d'utilisateur dans votre fournisseur d'identité.
+
+== Gérer les jetons de service
+
+Les jetons de service peuvent être gérés via le CLI de `sts`. Les commandes suivantes sont disponibles :
+
+[,sh]
+----
+> sts service-token --help
+Manage service tokens.
+
+Usage:
+  sts service-token [command]
+
+Available Commands:
+  create      Create a service token
+  delete      Delete a service token
+  list        List service tokens
+
+Use "sts service-token [command] --help" for more information about a command.
+----
+
+=== Créer des jetons de service
+
+[NOTE]
+====
+Les StackPacks Open Telemetry et Kubernetes vous permettent de créer un sujet et un jeton de service avec toutes les autorisations requises.
+====
+
+Pour créer un jeton de service dans votre instance de SUSE Observability, vous pouvez utiliser le CLI `sts`.
+
+[,sh]
+----
+sts service-token create
+----
+
+[NOTE]
+====
+Notez que le jeton de service ne sera affiché qu'une seule fois. Il n'est pas possible de revoir le jeton.
+====
+
+
+Cette commande prend en compte les arguments de ligne de commande suivants :
+
+|===
+| Drapeau | Description
+
+| `--name`
+| Le nom du jeton de service
+
+| `--expiration`
+| La date d'expiration du jeton de service, au format aaaa-MM-jj. L'expiration est facultative.
+
+| `--roles`
+| Une liste de rôles séparés par des virgules à attribuer au jeton de service
+|===
+
+Par exemple, la commande ci-dessous créera un jeton de service avec le nom `my-service-token` et le rôle `stackstate-k8s-troubleshooter`:
+
+[,sh]
+----
+> sts service-token create --name my-service-token --roles stackstate-k8s-troubleshooter
+✅ Service token created: svctok-aaaaa-bbbb-ccccc-ddddd
+----
+
+=== Liste des jetons de service
+
+L'ID, le nom, la date d'expiration et les rôles de tous les jetons de service créés peuvent être consultés à l'aide du CLI `sts`. Par exemple :
+
+[,bash]
+----
+> sts service-token list
+ID              | NAME             | EXPIRATION | ROLES
+107484341630693 | my-service-token |            | [stackstate-k8s-troubleshooter]
+----
+
+=== Supprimer les jetons de service
+
+Un jeton de service peut être supprimé à l'aide du CLI `sts`. Passez l'ID du jeton de service en argument. Par exemple :
+
+[,sh]
+----
+> sts service-token delete 107484341630693
+✅ Service token deleted: 107484341630693
+----
+
+== Authentification à l'aide de jetons de service
+
+Une fois créé, un jeton de service peut être utilisé pour s'authentifier auprès de SUSE Observability à partir d'un service sans tête. Pour ce faire, vous pouvez utiliser l'interface de programmation ou vous adresser directement à l'API.
+
+=== SUSE Observability `sts` CLI
+
+Un jeton de service peut être utilisé pour l'authentification avec la nouvelle CLI `sts`.
+
+[,sh]
+----
+> sts context --name <name> --service-token <TOKEN> --url https://<tenant>.app.stackstate.io
+----
+
+=== SUSE Observability APIs
+
+Pour utiliser un jeton de service afin de communiquer directement avec l'API SUSE Observability, ajoutez-le à l'en-tête de la requête de l'une des manières suivantes :
+
+* Dans l'en-tête `Authorization`:
++
+[,sh]
+----
+  > curl -X GET -H "Authorization: ApiKey <TOKEN>" http://<tenant>.app.stackstate.io/api/server/status
+----
+
+* Dans l'en-tête `X-API-Key`:
++
+[,sh]
+----
+  > curl -X GET -H "X-API-Key: <TOKEN>" http://<tenant>.app.stackstate.io/api/server/status
+----
+
+
+== Authentification à l'aide de jetons de service pour l'ingestion de données
+
+Afin de créer un jeton de service pour l'ingestion de données, vous devez d'abord créer un rôle dédié à cet effet :
+[,sh]
+----
+> sts rbac create-subject --subject my-agent
+✅ Created subject 'my-agent'
+> sts rbac grant --subject my-agent --permission update-metrics
+✅ Granted permission 'update-metrics' on 'system' to subject 'my-agent'
+PERMISSION   | RESOURCE
+update-metrics | system
+----
+
+Si vous souhaitez utiliser le jeton de service pour ingérer les données RBAC de Kubernetes, vous devez également accorder `update-scoped-permissions`:
+[,sh]
+----
+> sts rbac grant --subject my-agent --permission update-scoped-permissions --resource my-cluster
+✅ Granted permission 'update-scoped-permissions' on 'my-cluster' to subject 'my-agent'
+PERMISSION                | RESOURCE
+update-metrics            | system
+update-scoped-permissions | my-cluster
+----
+
+Cela créera un nouveau rôle dans SUSE Observability appelé `my-agent` et lui accordera l'autorisation `update-metrics`. Vous pouvez ensuite créer un ServiceToken pour ce rôle :
+
+[,sh]
+----
+> sts service-token create --name my-agent --roles my-agent
+✅ Service token created: svctok-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----
+
+Le jeton de service nouvellement créé peut être utilisé pour s'authentifier :
+
+* suse-observability-agent
+* Collecteur OTel
+
+=== suse-observability-agent
+
+L'agent SUSE Observability a besoin d'une clé API pour communiquer, historiquement connue sous le nom de clé API du récepteur. SUSE Observability propose désormais deux options d'authentification :
+
+* Clé API du récepteur : Cette clé est généralement générée lors de l'installation initiale de votre instance SUSE Observability,
+* Jeton de service : Vous pouvez créer un jeton de service à l'aide de l'interface de commande SUSE Observability (STS). Ces clés sont assorties de dates d'expiration et nécessitent une rotation périodique pour rester fonctionnelles.
+
+=== Collecteur OTel
+
+Lorsque vous utilisez le collecteur SUSE Observability, vous devez inclure un en-tête `Authorization` dans votre configuration. Le collecteur accepte une clé API de récepteur ou un jeton de service pour l'authentification.
+L'extrait de code suivant fournit un exemple de configuration :
+
+[,yaml]
+----
+extensions:
+  bearertokenauth:
+    scheme: SUSE Observability
+    token: "${env:API_KEY}"
+exporters:
+  otlp/suse-observability:
+    auth:
+      authenticator: bearertokenauth
+    endpoint: <otlp-suse-observability-endpoint>:443
+  # or
+  otlphttp/suse-observability:
+    auth:
+      authenticator: bearertokenauth
+    endpoint: https://<otlp-http-suse-observability-endpoint>
+----
