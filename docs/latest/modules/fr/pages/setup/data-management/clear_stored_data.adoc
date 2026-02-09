@@ -1,0 +1,21 @@
+= Effacer les données stockées
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+Les données de SUSE Observability sont divisées en quatre ensembles différents :
+
+* Données Elasticsearch
+* Données thématiques Kafka
+* Données du StackGraph
+* Données métriques
+
+Avec une telle quantité de données à stocker, il est important d'avoir les moyens de les gérer. La période de conservation des données dans SUSE Observability est de 30 jours. Il peut être configuré en fonction de vos besoins à l'aide de l'interface CLI de SUSE Observability. En savoir plus sur la xref:/setup/data-management/data_retention.adoc[rétention des données de SUSE Observability].
+
+== Effacer les données manuellement
+
+Pour effacer les données stockées dans SUSE Observability exécuté sur Kubernetes, il est recommandé d'exécuter une installation propre :
+
+. xref:/setup/install-stackstate/kubernetes_openshift/uninstall.adoc#_un_install_the_helm_chart[Désinstaller SUSE Observability]
+. xref:/setup/install-stackstate/kubernetes_openshift/uninstall.adoc#_remove_remaining_resources[Retirer tous les PVC]
+. Installez à nouveau SUSE Observability en utilisant la même configuration que précédemment, sur xref:/setup/install-stackstate/kubernetes_openshift/kubernetes_install.adoc#_deploy_suse_observability_with_helm[Kubernetes] ou xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_deploy_suse_observability_with_helm[OpenShift].
