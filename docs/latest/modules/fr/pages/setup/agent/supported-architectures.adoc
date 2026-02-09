@@ -1,0 +1,10 @@
+= Architectures prises en charge par SUSE Observability Agent
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+
+SUSE Observability est conçu et testé pour fonctionner sur des architectures matérielles spécifiques. L'installation et le fonctionnement sont pris en charge par ces systèmes :
+
+* `x86_64` (également connu sous le nom de AMD64 ou Intel 64)
+* `arm64` (également connu sous le nom de AArch64)
+
+Assurez-vous que votre environnement cible répond à ces exigences avant de procéder au déploiement. L'installation ou l'exécution de SUSE Observability sur d'autres architectures n'est pas prise en charge.
