@@ -1,0 +1,150 @@
+ifdef::ss-ff-stackpacks2_enabled[]
+= Schéma et référence pour les moniteurs
+:revdate: 2026-01-09
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+Cette page décrit les schémas de `Monitor`, ainsi que des explications détaillées sur les constructions, la syntaxe des expressions et la sémantique.
+
+== Schéma pour le moniteur
+
+Un moniteur spécifie la fréquence d'exécution d'une fonction de moniteur et les arguments qu'elle doit utiliser.
+
+[,yaml]
+----
+_type: "Monitor"
+name: string
+description?: string
+function: string
+arguments:
+  <dependent on monitor function>
+intervalSeconds: integer
+remediationHint?: string
+status?: "ENABLED" | "DISABLED"       # defaults to "DISABLED"
+tags:
+  <key>: <value>
+identifier?: string
+----
+
+* `_type`: {stackstate-product-name} doit savoir qu'il s'agit d'un moniteur, la valeur doit donc toujours être `Monitor`
+* `name`: Le nom du moniteur
+* `description`: Une description du moniteur.
+* `function`: Une référence à la fonction du moniteur qui exécutera le moniteur.
+* `intervalSeconds`: Intervalle d'exécution du moniteur. Pour les mesures régulières en temps réel, 30 secondes sont conseillées. Pour les requêtes analytiques métriques de longue durée, il est recommandé d'utiliser un intervalle plus important.
+* `remediationHint`: Description de ce que l'utilisateur peut faire en cas d'échec du moniteur. Le format est markdown, avec éventuellement l'utilisation de variables handlebars pour personnaliser l'indice sur la base de séries temporelles ou d'autres donnéesxref:/setup/custom-integrations/monitors/index.adoc#_write_the_remediation_hint[(plus d'explications ci-dessous).]
+* `status`: Soit `"DISABLED"` ou `"ENABLED"`. Détermine si le moniteur s'exécute ou non.
+* `tags`: Ajoutez des étiquettes aux moniteurs pour les organiser dans la vue d'ensemble des moniteurs de votre instance {stackstate-product-name}, http://your-instance/#/monitors
+* `identifier`: Un identifiant de la forme `urn:stackpack:<stackpack-name>:monitor:....` qui identifie de manière unique le moniteur lors de la mise à jour de sa configuration.
+
+== Fonctions du moniteur
+
+=== Seuil
+
+Déclenche un état de santé lorsqu'un seuil donné est dépassé pour une requête métrique spécifiée. Différents seuils peuvent être définis pour des ressources particulières à l'aide d xref:/use/alerting/k8s-override-monitor-arguments.adoc['annotations].
+
+[,yaml]
+----
+function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+arguments:
+  metric:
+    query: string
+    unit: string
+    aliasTemplate: string
+  comparator: GTE | GT | LTE | LT     # how to compare metric value to threshold
+  threshold: double
+  failureState: CRITICAL | DEVIATING | UNKNOWN
+  urnTemplate: string
+  titleTemplate: string
+----
+
+* `query`: Une requête PromQL. Utilisez l'xref:/use/metrics/k8sTs-explore-metrics.adoc[explorateur de métriques] de votre instance {stackstate-product-name}, http://your-instance/#/metrics, et utilisez-le pour construire une requête pour la métrique qui vous intéresse.
+* `unit`: L'unité des valeurs de la série temporelle renvoyée par la ou les requêtes, utilisée pour représenter l'axe Y du graphique. Voir la référence des xref:/develop/reference/k8sTs-chart-units.adoc[unités prises en charge] pour toutes les unités.
+* `aliasTemplate`: Un alias pour les séries temporelles dans le graphique métrique. Il s'agit d'un modèle qui peut remplacer les étiquettes de la série temporelle à l'aide de l'espace réservé `${my_label}`.
+* `comparator`: Choisissez l'une des options suivantes : LTE/LT/GTE/GT pour comparer le seuil à la mesure. Les séries temporelles pour lesquelles `<metric> <comparator> <threshold>` est vrai produiront l'état d'échec.
+* `threshold`: Un seuil numérique à comparer.
+* `failureState`: Soit "CRITIQUE", soit "DÉVIATEUR". La mention "CRITIQUE" apparaît sur le site {stackstate-product-name} et la mention "DÉVIATEUR" sur le site orange, pour indiquer une gravité différente.
+* `urnTemplate`: Un modèle pour construire l'urne du composant xref:/setup/custom-integrations/monitors/index.adoc#_bind_the_results_of_the_monitor_to_the_correct_components[auquel] le résultat du moniteur sera xref:/setup/custom-integrations/monitors/index.adoc#_bind_the_results_of_the_monitor_to_the_correct_components[lié].
+* `titleTemplate`: Un titre pour le résultat d'un moniteur. Comme plusieurs résultats de moniteurs peuvent être liés au même composant, il est possible de remplacer les étiquettes de séries temporelles en utilisant l'espace réservé `${my_label}`.
+
+=== État dérivé
+
+Déduit son état des dépendances des composants dont l'état de santé est basé sur des observations. Il produit l'état le plus critique des dépendances les plus importantes.
+Pour plus de détails, voir la page sur les xref:/setup/custom-integrations/monitors/derived-state-monitors.adoc[moniteurs d'état dérivés].
+
+[,yaml]
+----
+function: {{ get "urn:stackpack:common:monitor-function:derived-state-monitor" }}
+arguments:
+  componentTypes: string
+----
+
+* `componentTypes`: Les types de composants qui contribuent aux états dérivés.  Spécifié sous la forme d'une chaîne unique de valeurs séparées par des virgules ( `,` ).
+
+=== Seuil topologique
+
+Déclenche un état de santé lorsqu'un seuil donné est dépassé pour une requête métrique spécifiée. La requête métrique peut référencer le nom, les balises et les propriétés des composants renvoyés par la requête topologique. Différents seuils peuvent être définis pour des ressources particulières à l'aide d xref:/use/alerting/k8s-override-monitor-arguments.adoc['annotations].
+
+[,yaml]
+----
+function: {{ get "urn:stackpack:common:monitor-function:topological-threshold"  }}
+arguments:
+  queries:
+    topologyQuery: string
+    promqlQuery: string
+    aliasTemplate: string
+    unit: string
+  comparator: GTE | GT | LTE | LT     # how to compare metric value to threshold
+  threshold: double
+  failureState: CRITICAL | DEVIATING | UNKNOWN
+  titleTemplate: string
+----
+
+* `queries`: Les requêtes à exécuter
+** `topologyQuery`: Requête STQL pour sélectionner les composants
+** `promqlQuery`: Requête PromQL qui peut utiliser les étiquettes et les propriétés des composants pour sélectionner des séries temporelles
+** `unit`: L'unité des valeurs de la série temporelle renvoyée par la ou les requêtes, utilisée pour représenter l'axe Y du graphique. Voir la référence des xref:/develop/reference/k8sTs-chart-units.adoc[unités prises en charge] pour toutes les unités.
+** `aliasTemplate`: Un alias pour les séries temporelles dans le graphique métrique. Il s'agit d'un modèle qui peut remplacer les étiquettes de la série temporelle à l'aide de l'espace réservé `${my_label}`.
+* `comparator`: Choisissez l'une des options suivantes : LTE/LT/GTE/GT pour comparer le seuil à la mesure. Les séries temporelles pour lesquelles `<metric> <comparator> <threshold>` est vrai produiront l'état d'échec.
+* `threshold`: Un seuil numérique à comparer.
+* `failureState`: Soit "CRITIQUE", soit "DÉVIATEUR". La mention "CRITIQUE" apparaît sur le site {stackstate-product-name} et la mention "DÉVIATEUR" sur le site orange, pour indiquer une gravité différente.
+* `titleTemplate`: Un titre pour le résultat d'un moniteur. Comme plusieurs résultats de moniteurs peuvent être liés au même composant, il est possible de remplacer les étiquettes de séries temporelles en utilisant l'espace réservé `${my_label}`.
+
+=== Seuil dynamique
+
+Alertes lorsque la valeur actuelle est en dehors de l'intervalle de référence prévu, qui est calculé dynamiquement sur la base des données historiques, en tenant compte des modèles saisonniers hebdomadaires et quotidiens.
+Cette fonction de surveillance n'est disponible que lorsque le stackpack du détecteur d'anomalies autonome est installé.
+
+Pour plus de détails, voir la page xref:/setup/custom-integrations/monitors/dynamic-threshold-monitors.adoc[Moniteurs de seuil dynamique.] 
+
+[,yaml]
+----
+function: {{ get "urn:stackpack:aad-v2:shared:monitor-function:dt" }}
+arguments:
+  telemetryQuery:
+    query: string
+    unit: string
+    aliasTemplate: string
+  topologyQuery: string
+  falsePositiveRate: float
+  checkWindowMinutes: integer
+  historicWindowMinutes: integer
+  historySizeWeeks: 1 | 2 | 3 (integer)
+  includePreviousDay: boolean
+  removeTrend: boolean
+----
+
+* `telemetryQuery`: la télémétrie au service de l'évaluation
+** `query`: Requête PromQL utilisée pour l'analyse de base et la détection des anomalies
+** `unit`: L'unité des valeurs de la série temporelle renvoyée par la ou les requêtes, utilisée pour représenter l'axe Y du graphique. Voir la référence des xref:/develop/reference/k8sTs-chart-units.adoc[unités prises en charge] pour toutes les unités.
+** `aliasTemplate`: Un alias pour les séries temporelles dans le graphique métrique. Il s'agit d'un modèle qui peut remplacer les étiquettes de la série temporelle à l'aide de l'espace réservé `${my_label}`.
+* `topologyQuery`: Requête STQL pour sélectionner les composants
+* `falsePositiveRate`: dire `!!float 1e-8` - la sensibilité du moniteur aux comportements déviants.  Une valeur plus faible supprime davantage de (faux) positifs, mais peut également entraîner des faux négatifs (anomalies passées inaperçues).
+* `checkWindowMinutes``10` La fenêtre de contrôle doit être équilibrée entre une alerte rapide (petites valeurs) et des anomalies correctement identifiées (valeurs élevées).  Une poignée de points de données fonctionne bien dans la pratique.
+* `historicWindowMinutes`Les données de l'enquête peuvent être consultées à l'adresse suivante : `120` (2 heures) - entre parenthèses autour de l'heure actuelle, mais aussi une ou plusieurs semaines auparavant - donc d'une heure avant l'heure actuelle à une heure après.  Les deux heures précédant la fenêtre de contrôle sont également utilisées.  Le moniteur de seuil dynamique compare la distribution de ces données historiques avec les points de données de la fenêtre de contrôle.
+* `historySizeWeeks`: say `2` - le nombre de semaines dont les données sont extraites pour le contexte historique.  Peut être `1`, `2` ou `3`.
+* `removeTrend`Pour les mesures qui présentent une tendance (par exemple, le nombre de demandes), de sorte que la valeur absolue diffère d'une semaine à l'autre, cette tendance (la valeur moyenne) peut être prise en compte.
+* `includePreviousDay`les données sont généralement disponibles à l'adresse suivante : `false` - pour les mesures qui n'ont pas de tendance hebdomadaire mais seulement quotidienne, cela permet d'utiliser des données plus récentes.
+
+endif::[]
