@@ -1,0 +1,448 @@
+= SUSE Observability
+:revdate: 2025-07-25
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Introduction
+
+SUSE Observability, anciennement connu sous le nom de StackState, peut être utilisé pour l'observabilité de vos clusters Kubernetes et de leurs charges de travail.
+
+L'installation de SUSE Observability, de l'extension SUSE Observability UI et des agents SUSE Observability prend environ 30 minutes au total.
+
+== Obtenir de l'aide
+
+Pour obtenir de l'aide, veuillez déposer un dossier d'assistance sur https://scc.suse.com/[Customer Center (SCC)] SUSE.
+
+== Conditions préalables
+
+=== Clé de licence
+
+Une clé de licence pour le serveur SUSE Observability peut être obtenue via le SUSE Customer Center dans l'onglet Abonnement et sera affichée en tant que code d'enregistrement "SUSE Observability". Cette licence est valable jusqu'à la fin de votre abonnement à Rancher Prime.
+
+=== Exigences
+
+Pour installer SUSE Observability, assurez-vous que le cluster dispose d'une capacité de CPU et de mémoire suffisante. Vous trouverez ci-dessous les exigences spécifiques.
+
+Il existe différentes options d'installation pour {stackstate-product-name}. Il est possible d'installer {stackstate-product-name} dans une configuration à haute disponibilité (HA) ou à instance unique (non-HA). La configuration non-HA est recommandée à des fins de test ou pour des environnements restreints. Pour les environnements de production, il est recommandé d'installer {stackstate-product-name} dans une configuration HA.
+
+La configuration de production HA peut prendre en charge de 150 à 4000 nœuds observés. Dans ce tableau de dimensionnement, un nœud observé correspond à 4 vCPU et 16 Go de mémoire, soit notre site `default node size`.
+Si les nœuds de votre cluster observé sont plus grands, ils peuvent compter pour plusieurs `default nodes`, ainsi un nœud de 12vCPU et 48GB compte pour 3 `default nodes` sous observation lors de la sélection d'un profil.
+L'installation Non-HA peut prendre en charge jusqu'à 100 `default nodes` sous observation.
+
+
+Le tableau suivant décrit les ressources nécessaires pour déployer le serveur {stackstate-product-name} dans un cluster, compte tenu de la quantité de `default nodes` qui sera observée et du fait que l'installation doit être HA ou non.
+
+|===
+|  | procès | 10 non-HA | 20 non-HA | 50 non-HA | 100 non-HA | 150 HA | 250 HA | 500 HA | 4000 HA
+
+| *Demandes de CPU (cœurs)*
+| 6.945
+| 6.945
+| 9.245
+| 13.945
+| 23.545
+| 49.245
+| 61.245
+| 84.745
+| 210.05
+
+| *Limites de l'unité centrale (cœurs)*
+| 15.02
+| 15.02
+| 19.32
+| 28.72
+| 47.87
+| 104
+| 127
+| 175.38
+| 278.95
+
+| *Demandes de mémoire*
+| 23180Mi
+| 23180Mi
+| 27056Mi
+| 31582Mi
+| 48088Mi
+| 129958Mi
+| 142426Mi
+| 161106Mi
+| 264330Mi
+
+| *Limites de la mémoire*
+| 23718Mi
+| 23718Mi
+| 27708Mi
+| 31614Mi
+| 48120Mi
+| 134762Mi
+| 147030Mi
+| 165910Mi
+| 327550Mi
+
+| *Stockage*
+| 153613Mi
+| 338957Mi
+| 379917Mi
+| 482317Mi
+| 533517Mi
+| 2654430Mi
+| 2756950Mi
+| 3678260Mi
+| 7159862Mi
+|===
+
+NOTE: Un supplément de 20 % des ressources est nécessaire pour la distribution (inégale) des pods, le plan de contrôle et l'installation des agents.
+
+[NOTE]
+====
+Les exigences indiquées pour le profil représentent la quantité totale de ressources nécessaires pour faire fonctionner le serveur {stackstate-product-name}.
+Pour s'assurer que tous les différents services du serveur Suse Observability peuvent être alloués :
+
+* Pour les installations non-HA, la taille minimale par nœud est de 4VCPU, 8GB
+* Pour les installations HA jusqu'à 500 nœuds, la taille minimale par nœud est de 8VCPU, 16GB
+* Pour les installations HA de 4000 nœuds, la taille minimale par nœud est de 16VCPU, 32GB
+====
+
+
+[NOTE]
+====
+Une configuration d'essai est une configuration de 10 utilisateurs non-HA configurée avec une rétention de 3 jours et des exigences réduites en matière d'espace disque.
+====
+
+
+Il s'agit simplement des limites supérieures et inférieures des ressources qui peuvent être consommées par SUSE Observability dans les différentes options d'installation. L'utilisation réelle des ressources dépend des fonctionnalités utilisées, des limites de ressources configurées et des schémas d'utilisation dynamiques, tels que le déploiement ou la mise à l'échelle de DaemonSet. Pour nos clients Rancher Prime, nous recommandons de commencer par les exigences par défaut et de surveiller l'utilisation des ressources des composants SUSE Observability.
+
+[NOTE]
+====
+Les exigences minimales n'incluent pas la capacité de mémoire et d'unité centrale supplémentaire pour assurer des mises à jour régulières de l'application.
+====
+
+
+=== Stockage
+
+SUSE Observability utilise des réclamations de volumes persistants pour les services qui doivent stocker des données. La classe de stockage par défaut du cluster sera utilisée pour tous les services à moins qu'elle ne soit remplacée par des valeurs spécifiées sur la ligne de commande ou dans un fichier `values.yaml`. Tous les services sont fournis avec une taille de volume préconfigurée qui devrait vous permettre de démarrer, mais qui peut être personnalisée ultérieurement à l'aide de variables, si nécessaire.
+
+[NOTE]
+====
+SUSE Observability exige que le stockage sous-jacent soit basé sur la mémoire flash (SSD) ou sur des performances similaires.
+====
+[NOTE]
+====
+Pour les environnements de production, NFS n'est pas recommandé ni pris en charge pour le provisionnement du stockage dans SUSE Observability en raison du risque potentiel de corruption des données.
+====
+
+
+Pour nos différents profils d'installation, les exigences de stockage par défaut sont les suivantes :
+
+|===
+|  | procès | 10 non-HA | 20 non-HA | 50 non-HA | 100 non-HA | 150 HA | 250 HA | 500 HA | 4000 HA
+
+| *Rétention (jours)*
+| 3
+| 30
+| 30
+| 30
+| 30
+| 30
+| 30
+| 30
+| 30
+
+| *Besoin de stockage*
+| 125GB
+| 280GB
+| 420GB
+| 420GB
+| 600GB
+| 2TB
+| 2TB
+| 2.5TB
+| 5.5TB
+|===
+
+Pour plus de détails sur les valeurs par défaut utilisées, voir la page xref:/setup/install-stackstate/kubernetes_openshift/storage.adoc[Configurer le stockage].
+
+=== Compatibilité avec Rancher
+Consultez la matrice de compatibilité Rancher ici xref:setup/install-stackstate/Compatibility Self Hosted.adoc[Compatibilité Rancher]
+
+=== Tige
+
+SUSE Observability est installé via Helm, qui doit être installé avec une version minimale de 3.13.1.
+
+=== Les différents composants
+
+==== SUSE Observability Server
+
+Il s'agit de la partie de l'installation concernant le serveur hébergé sur site. Il contient un ensemble de services permettant de stocker les données d'observabilité :
+
+* Topologie (StackGraph)
+* Métriques (VictoriaMetrics)
+* Traces (ClickHouse)
+* Journaux (ElasticSearch)
+
+En outre, il contient un ensemble de services pour toutes les tâches d'observabilité, par exemple les notifications, la gestion de l'état, la surveillance, etc.
+
+==== SUSE Observability Agent
+
+L'agent léger SUSE Observability est installé sur vos noeuds de travail en aval. Il recueille et rapporte des mesures, des événements, des traces et des journaux, et il fournit une observabilité et des informations en temps réel, permettant une surveillance et un dépannage proactifs de votre environnement informatique.
+
+La version SUSE Observability de l'agent utilise également eBPF comme moyen léger de surveiller tous vos environnements système et leurs communications. Il décode également les signaux RED (Rate, Errors and Duration) pour la plupart des protocoles L7 courants tels que TCP, HTTP, TLS, Redis, etc.
+
+==== Rancher Prime - Extension de l'interface utilisateur pour l'observabilité
+
+Il s'agit d'une extension de l'interface utilisateur de Rancher Manager qui intègre les signaux de santé observés par SUSE Observability. Il donne un accès direct à l'état de santé de n'importe quelle ressource et un lien vers l'interface utilisateur de SUSE Observability pour un examen plus approfondi.
+
+=== Où installer le serveur SUSE Observability
+
+Le serveur SUSE Observability doit être installé dans son propre cluster en aval prévu pour Observability. Voir l'image ci-dessous à titre de référence.
+
+Pour que SUSE Observability puisse fonctionner correctement, il faut que les conditions suivantes soient réunies
+
+* https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/manage-clusters/create-kubernetes-persistent-storage[stockage persistant Kubernetes]Le  doit être disponible dans le cluster d'observabilité pour stocker les métriques, les événements, etc.
+* le cluster d'observabilité pour prendre en charge un moyen d'exposer SUSE Observability sur une URL HTTPS à Rancher, aux utilisateurs de SUSE Observability et à l'agent SUSE Observability. Cela peut se faire via une configuration Ingress utilisant un contrôleur Ingress, ou bien un loadbalancer (cloud) pour les services SUSE Observability. Pour plus d'informations, consultez la https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-resources-setup/load-balancer-and-ingress-controller[documentation de] Rancher.
+
+image::k8s/prime/SUSEObservabilityDeployment.png[Architecture]
+
+=== Pré-installation
+
+Avant d'installer le serveur SUSE Observability, une classe de stockage par défaut doit être configurée dans le cluster où le serveur SUSE Observability sera installé :
+
+* *Pour les k3 :* La classe de stockage local-path de type rancher.io/local-path est créée par défaut.
+* *Pour EKS, AKS, GKE*, une classe de stockage est définie par défaut.
+* *Pour les pilotes de nœuds RKE2*: Aucune classe de stockage n'est créée par défaut. Vous devrez en créer un avant d'installer SUSE Observability.
+
+== Installation de SUSE Observability
+
+[NOTE]
+====
+*Bon à savoir*
+
+Si vous avez créé le cluster à l'aide de Rancher Manager et que vous souhaitez exécuter les commandes de provisionnement ci-dessous à partir d'un terminal local plutôt que dans le terminal web, il suffit de copier ou de télécharger le fichier kubeconfig depuis le tableau de bord du cluster, voir l'image ci-dessous, et de le coller (ou de placer le fichier téléchargé) dans un fichier facile à trouver, par exemple ~/.kube/config-rancher, et de définir la variable d'environnement KUBECONFIG=$HOME/.kube/config-rancher.
+====
+
+
+image::k8s/prime/rancher_cluster_dashboard.png[Rancher]
+
+Après avoir rempli les conditions préalables, vous pouvez procéder à l'installation. L'installation n'est pas encore disponible sur l'app store. En revanche, vous pouvez installer SUSE Observability via le shell kubectl du cluster.
+
+Vous pouvez maintenant suivre les instructions ci-dessous pour une configuration HA ou NON-HA.
+
+[NOTE]
+====
+Attention, la mise à niveau ou la rétrogradation de HA à NON-HA et vice-versa n'est pas encore prise en charge.
+====
+
+
+=== Installation
+
+. Obtenir le plan de barre
++
+.helm_repo.sh
+[,text]
+----
+helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+helm repo update
+----
++
+. Commande permettant de générer des fichiers de valeurs de diagramme de barre :
++
+.helm_template.sh
+[,text]
+----
+export VALUES_DIR=.
+helm template \
+  --set license='<your license>' \
+  --set baseUrl='<suse-observability-base-url>' \
+  --set rancherUrl='<rancher-prime-base-url>' \
+  --set sizing.profile='<sizing.profile>' \
+  suse-observability-values \
+  suse-observability/suse-observability-values --output-dir $VALUES_DIR
+----
+
+L'adresse `baseUrl` doit être l'URL par laquelle SUSE Observability sera accessible à Rancher, aux utilisateurs et à l'agent SUSE Observability. Elle doit correspondre à l'URL qu'un utilisateur saisira dans le navigateur pour ouvrir l'interface utilisateur. Elle doit donc inclure le schéma et tout port personnalisé, par exemple `https://observability.internal.mycompany.com` (qui utilise le port par défaut). Voir aussi l <<_accessing_suse_observability,'accès à SUSE Observability>>.
+
+Le site `sizing.profile` devrait être un essai, 10-nonha, 20-nonha, 50-nonha, 100-nonha, 150-ha, 250-ha, 500-ha. Sur la base de ces profils, le fichier `sizing_values.yaml` est généré et contient des tailles par défaut pour les ressources et la configuration de SUSE Observability à déployer sur un mode Ha ou NonHa. Par exemple 10-nonha produira un `sizing_values.yaml` destiné à déployer une instance NonHa de SUSE Observability pour observer un cluster de 10 noeuds en mode Non High Available. Actuellement, il n'est pas possible de passer d'un environnement non ha à un environnement ha. Par conséquent, si vous pensez que votre environnement nécessitera l'observation d'environ 150 nœuds, il est préférable d'opter immédiatement pour un environnement ha.
+
+Pour voir les informations de santé dans Rancher à l'aide de l'extension de l'interface utilisateur, définissez la valeur `rancherUrl` à l'URL de Rancher (pour être précis, son Origine).
+
+Cette commande génère les fichiers `$VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml`, `$VALUES_DIR/suse-observability-values/templates/sizing_values.yaml`, et `$VALUES_DIR/suse-observability-values/templates/affinity_values.yaml` contenant la configuration nécessaire à l'installation de SUSE Observability Helm Chart.
+
+[NOTE]
+====
+Le mot de passe de l'administrateur de SUSE Observability sera autogénéré par la commande ci-dessus et sera affiché sous forme de commentaires dans le fichier `basicConfig.yaml` généré. Pour plus d'informations, voir xref:/setup/security/authentication/single_password.adoc[mot de passe unique].
+Les valeurs réelles contiennent les hachages `bcrypt` de ces mots de passe afin qu'ils soient stockés en toute sécurité dans la version Helm du cluster.
+====
+
+
+[warn]
+====
+L'utilisation d'un mot de passe unique par défaut est idéale pour démarrer avec SUSE Observability, mais pour une configuration de production, xref:/setup/security/authentication/authentication_options.adoc[des options d'authentification plus sûres] sont disponibles.
+====
+
+
+[NOTE]
+====
+Conservez les fichiers générés `basicConfig.yaml`, `sizing_values.yaml` et `affinity_values.yaml` en toute sécurité. Vous pouvez réutiliser ces fichiers pour les mises à niveau, ce qui permet de gagner du temps et de garantir que SUSE Observability continue d'utiliser la même clé API. Ceci est souhaitable car cela signifie que les agents et autres fournisseurs de données pour SUSE Observability n'auront pas besoin d'être mis à jour.
+Les fichiers peuvent être régénérés indépendamment en utilisant les commutateurs `basicConfig.generate=false` et `sizing.generate=false` pour désactiver l'un d'entre eux tout en conservant la version précédemment générée du fichier dans le fichier `output-dir`.
+====
+
+[NOTE]
+====
+Le tableau SUSE Observability Values génère des configurations d'affinité que vous pouvez utiliser avec le tableau SUSE Observability principal pour contrôler le comportement de l'ordonnancement des pods. Reportez-vous à xref:/setup/install-stackstate/kubernetes_openshift/affinity.adoc[Configurer les affinités Kubernetes]) pour plus d'informations.
+====
+
+. Configurez SUSE Observability pour utiliser Rancher en tant que fournisseur OIDC.
+
+    Generate the `oidc_values.yaml`. This guide assumes that you save it in the `$VALUES_DIR`
+
++
+.$VALUES_DIR/oidc_values.yaml
+[,yaml]
+----
+stackstate:
+  authentication:
+    rancher:
+      clientId: "<oidc-client-id>"
+      secret: "<oidc-secret>"
+      baseUrl: "<rancher-url>"
+----
++
+[NOTE]
+====
+Cette étape est nécessaire si vous prévoyez d'utiliser le RBAC de Rancher pour étendre la visibilité aux clusters en aval.
+Pour une explication plus détaillée sur la façon de configurer SUSE Observability pour utiliser Rancher en tant que fournisseur OIDC, voir xref:/setup/security/authentication/oidc.adoc#_rancher[Configurer SUSE Observability pour utiliser Rancher en tant que fournisseur OIDC].
+====
+
+. Déployez le diagramme de barre SUSE Observability avec les valeurs générées :
+
+.helm_deploy.sh
+[,text]
+----
+helm upgrade --install \
+    --namespace suse-observability \
+    --create-namespace \
+    --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+    --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+    --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+    --values $VALUES_DIR/oidc_values.yaml \
+    suse-observability \
+    suse-observability/suse-observability
+----
+
+
+== Accès à SUSE Observability
+
+La carte SUSE Observability Helm prend en charge la création d'une ressource Ingress pour rendre SUSE Observability accessible en dehors du cluster. Suivez xref:/setup/install-stackstate/kubernetes_openshift/ingress.adoc[les instructions suivantes] pour configurer cela lorsque vous avez un contrôleur d'entrée dans le cluster. Assurez-vous que l'URL qui en résulte utilise TLS avec un certificat valide et non auto-signé.
+
+Si vous préférez utiliser un équilibreur de charge au lieu de l'entrée, exposez le service `suse-observability-router`. L'URL de l'équilibreur de charge doit utiliser un certificat TLS valide et non auto-signé.
+
+== Installation des extensions de l'interface utilisateur
+
+Pour installer les extensions de l'interface utilisateur, activez les extensions de l'interface utilisateur à partir de l'interface utilisateur de rancher
+
+image::k8s/prime/ui_extensions.png[Install]
+
+Après avoir activé les extensions de l'interface utilisateur, procédez comme suit :
+
+. Naviguez vers les extensions sur l'interface rancher et dans la section "Available" des extensions, vous trouverez l'extension Observability.
+. Installer l'extension Observability.
+. Une fois installé, la section _SUSE Observability_ apparaît dans le panneau gauche de l'interface utilisateur de rancher.
+. Naviguez jusqu'à la section _SUSE Observability_ et sélectionnez "configurations". Dans cette section, vous pouvez ajouter les détails du serveur SUSE Observability et le connecter.
+. Suivez les instructions mentionnées dans la section _Obtenir un jeton de service_ ci-dessous et remplissez les détails.
+
+=== Obtenir un jeton de service :
+
+. Connectez-vous à l'instance SUSE Observability.
+. Dans le coin supérieur gauche, sélectionnez CLI.
+. Notez la clé API et installez SUSE Observability cli sur votre machine locale.
+. Créez un jeton de service en exécutant
+
+
+----
+sts service-token create --name suse-observability-extension --roles stackstate-k8s-troubleshooter
+----
+
+
+=== Matrice de compatibilité de l'extension de l'interface utilisateur de SUSE Observability Rancher
+
+|===
+| Version de l'extension de l'interface utilisateur | Version de Rancher supportée
+
+| 0.x.x
+| 2.8
+
+| 1.x.x
+| 2.9
+
+| 2.x.x
+| 2.10 +
+2.11 +
+2.12
+|===
+
+== Installation de SUSE Observability Agent
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal et sélectionnez StackPacks.
+. Sélectionnez le StackPack Kubernetes.
+. Cliquez sur new instance et indiquez le nom du cluster en aval que vous ajoutez. Veillez à ce que le nom du cluster Rancher corresponde au nom fourni ici. Cliquez sur installer.
+. Dans la liste des instructions, recherchez la section qui correspond le mieux à votre groupe.
+. Exécutez les instructions fournies pour installer l'agent, celles-ci peuvent être exécutées sur le site `kubectl shell` que vous pouvez ouvrir pour votre cluster via l'interface utilisateur de Rancher. Mais il peut également être exécuté à partir d'une machine locale si Helm y est installé et si elle est autorisée à se connecter au cluster.
+. Une fois l'agent installé, le cluster est visible dans l'interface utilisateur SUSE Observability ainsi que dans l'_extension SUSE Rancher - Observability UI_.
+
+== Privilèges requis
+
+Le déploiement de l'agent SUSE Observability nécessite les privilèges système suivants :
+
+. `hostPID: true`: Ce privilège est nécessaire pour associer les identificateurs de processus (PID) aux groupes de contrôle (cgroups) correspondants. Cette association est essentielle pour établir une correspondance précise entre les processus et leurs conteneurs respectifs.
+. `hostNetwork: true` (facultatif) : Par défaut, l'agent de nœud s'exécute avec `hostNetwork: true` pour faciliter la récupération des données de métriques ouvertes de tous les pods configurés sur le nœud sans nécessiter de politiques de réseau supplémentaires. S'il est désactivé, des règles de réseau appropriées doivent être définies pour que l'agent puisse accéder aux points d'extrémité nécessaires.
+. `securityContext.privileged: true`: Ce privilège élevé est nécessaire pour plusieurs fonctions critiques. Il permet principalement à l'agent d'injecter des programmes eBPF (extended Berkeley Packet Filter) dans chaque espace de noms du réseau à des fins de surveillance. Il est également nécessaire pour lire les tables de suivi des connexions (conntrack) dans tous les espaces de noms du réseau. Bien que cette liste ne soit pas exhaustive, les développements futurs visent à remplacer ce large privilège par des capacités Linux plus granulaires lorsque cela est possible.
+
+En outre, l'agent a besoin que les sockets d'exécution des conteneurs soient montés dans son pod. Cette configuration est essentielle car elle facilite la communication directe avec les démons d'exécution des conteneurs, ce qui est une condition préalable à l'extraction des métriques et des métadonnées de tous les conteneurs sur le système hôte.
+
+== Modèle de message d'intérêt public restreint aux éleveurs
+
+La configuration `Rancher-restricted` (link:https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/psa-config-templates[Pod Security Admission (PSA) Configuration Templates]) est une configuration très restrictive qui correspond aux meilleures pratiques actuelles en matière de sécurisation des pods.
+
+Lorsque vous exécutez Rancher sur un cluster Kubernetes qui applique une politique de sécurité restrictive par défaut, il existe deux façons d'installer la carte SUSE Observability Helm :
+
+* *Exempter l'ensemble de l'espace de noms du graphique*, ainsi que d'autres link:https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/psa-config-templates#exempting-required-rancher-namespaces[espaces de noms Rancher requis par].
+* *Désactiver le conteneur privilégié Elasticsearch init* en définissant `elasticsearch.sysctlInitContainer.enabled` à `false`. Pour ce faire, vous devez augmenter manuellement les link:https://www.elastic.co/docs/deploy-manage/deploy/self-managed/vm-max-map-count[paramètres de mémoire virtuelle de] (`vm.max_map_count`) sur les nœuds. Voir aussi xref:/setup/install-stackstate/kubernetes_openshift/required_permissions.adoc#_elasticsearch[Elasticsearch Required Permissions]. 
+
+Étant donné que SUSE Observability Agent doit fonctionner en mode privilégié, il est recommandé de l'installer dans un espace de noms que vous prévoyez d'exempter de la politique restrictive.
+
+[NOTE]
+====
+Tous les conteneurs SUSE Observability Helm chart sont configurés avec les paramètres `securityContext` suivants à partir de la version `v2.3.8`:
+
+. `securityContext.capabilities.drop` est `["ALL"]`
+. `securityContext.seccompProfile.type` est `"RuntimeDefault"`
+. `securityContext.runAsNonRoot` est `true`
+. `securityContext.allowPrivilegeEscalation` est `false`
+====
+
+== Signature unique
+
+Pour activer l'authentification unique avec votre propre fournisseur d'authentification, xref:/setup/security/authentication/authentication_options.adoc[voir ici.]
+
+== Questions fréquemment posées et observations :
+
+. Est-il obligatoire d'installer un agent SUSE Observability avant de procéder à l'ajout de l'extension de l'interface utilisateur ?
+ ** Non, ce n'est pas obligatoire, l'extension de l'interface utilisateur peut être installée indépendamment.
+. Est-il obligatoire d'installer SUSE Observability Server avant de procéder aux extensions de l'interface utilisateur ?
+ ** Oui, c'est obligatoire puisque vous devez fournir un point de terminaison SUSE Observability dans la configuration.
+. Peut-on installer SUSE Observability sur une grappe locale ou sur une grappe en aval ?
+ ** Les deux options sont possibles.
+. Pour surveiller les grappes en aval, devons-nous installer l'agent SUSE Observability à partir de l'app store ou ajouter une nouvelle instance à partir de l'interface utilisateur SUSE Observability ?
+ ** Les deux options sont possibles en fonction des préférences de l'utilisateur.
+
+== Questions ouvertes
+
+. Lorsque vous désinstallez et réinstallez les extensions de l'interface utilisateur pour Observability, nous avons remarqué que le jeton de service n'est pas supprimé et qu'il est réutilisé lors de la réinstallation. Lorsque nous désinstallons les extensions, le jeton de service doit être supprimé.
+ ** Ces informations doivent être supprimées lorsque les extensions de l'interface utilisateur sont désinstallées.
+. Une fois les extensions installées, l'interface utilisateur SUSE Observability s'ouvre dans le même onglet que l'interface utilisateur Rancher.
+ ** Vous pouvez utiliser shift-click pour ouvrir un nouvel onglet, ce qui deviendra le comportement par défaut.
+. Attention, la mise à niveau ou la rétrogradation de HA à NON-HA et vice-versa n'est pas encore prise en charge.
+
+== Dépannage
+
+Pour toute question concernant l'installation de l'extension UI pour Observability, voir le xref:/setup/install-stackstate/extension-troubleshooting.adoc[guide de dépannage de l'extension.]
