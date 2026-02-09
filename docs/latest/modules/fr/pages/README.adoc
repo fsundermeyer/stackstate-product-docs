@@ -1,0 +1,19 @@
+= SUSE Observability
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+
+*Ces pages de documentation couvrent toutes les fonctionnalités du produit SUSE Observability*.
+
+[discrete]
+=== Commencer
+
+Si vous êtes un utilisateur de Rancher Prime, consultez le xref:/k8s-suse-rancher-prime.adoc[guide de démarrage de Rancher] Prime, si vous êtes un utilisateur SaaS, consultez le xref:/k8s-quick-start-guide.adoc[guide de démarrage rapide], si vous utilisez SUSE Cloud Observability sur AWS, consultez le xref:/suse-cloud-observability-quick-start-guide.adoc[guide de démarrage rapide de SUSE Cloud Observability].
+
+== Vous ne trouvez rien ?
+
+*Cherchez-le !* Utilisez la barre de recherche en haut à droite.
+Si vous pensez qu'il manque de la documentation, veuillez nous en informer sur le SUSE https://scc.suse.com/[site de support de]
+
+== Dépannage et assistance
+
+Des questions ? Nous aimons aider ! Retrouvez notre équipe de support sur le https://scc.suse.com/[site] SUSE.
