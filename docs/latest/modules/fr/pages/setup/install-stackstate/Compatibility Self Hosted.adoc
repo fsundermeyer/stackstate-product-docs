@@ -1,0 +1,29 @@
+= Compatibilité avec Rancher et Kubernetes
+
+{stackstate-product-name} La version 2.6.3 est prise en charge sur les clusters Kubernetes gérés par Rancher et fonctionnant avec RKE2/Kubernetes.
+
+La matrice ci-dessous répertorie les versions de Rancher compatibles et les versions de RKE2/Kubernetes prises en charge correspondantes.
+
+|===
+| Version Rancher | Versions RKE2 / Kubernetes
+
+| 2.11.x
+| v1.30.11+rke2r1
+
+| 2.12.x
+| v1.30.11+rke2r1
+
+| 2.13.x
+a|
+v1.30.11+rke2r1
+
+v1.31.13+rke2r1
+
+v1.32.10+rke2r1
+
+|===
+
+{stackstate-product-name} peut être installé sur des clusters Kubernetes ou OpenShift à l'aide des cartes Helm fournies par SUSE. L'installation nécessite Helm v3.x, et les cartes sont supportées sur les plateformes suivantes :
+
+* *Kubernetes :* 1,21 à 1,32
+* *OpenShift :* 4.9 à 4.17
