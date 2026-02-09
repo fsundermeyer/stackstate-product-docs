@@ -1,0 +1,20 @@
+= Démarrer avec Open Telemetry
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+image::otel/open-telemetry.svg[Collecteur Open Telemetry et 2 applications instrumentées envoyant des mesures et des traces à SUSE Observability]
+
+SUSE Observability prend en charge https://opentelemetry.io/docs/what-is-opentelemetry/[Open Telemetry]. Open Telemetry est un ensemble de protocoles normalisés et un cadre open-source permettant de collecter, de transformer et d'expédier des données télémétriques telles que des traces, des mesures et des journaux. La télémétrie ouverte prend en charge une grande variété de langages de programmation et de plates-formes.
+
+SUSE Observability prend en charge à la fois les mesures et les traces. Lorsqu'il est utilisé en combinaison avec le stackpack Kubernetes, les pods Kubernetes sont enrichis de traces lorsqu'elles sont disponibles. En installant le stackpack Open Telemetry, de nouvelles pages de présentation pour les services et les instances de service sont disponibles et permettent d'accéder aux traces et aux mesures de l'étendue. Les métriques Open Telemetry peuvent être utilisées dans les moniteurs et les liaisons de métriques. Le stackpack est livré avec des bindings métriques pour les métriques span et les métriques de mémoire .NET et JVM. Il existe également des moniteurs prêts à l'emploi pour les taux d'erreur de portée et la durée.
+
+La configuration recommandée pour une utilisation avec SUSE Observability consiste à instrumenter les applications avec les xref:/setup/otel/instrumentation/README.adoc[SDK] Open Telemetry applicables et à installer le xref:/setup/otel/collector.adoc[collecteur Open Telemetry] à proximité de vos applications instrumentées pour prétraiter les données (enrichissement avec les étiquettes Kubernetes, échantillonnage sur les traces, etc.) et envoyer les données à SUSE Observability. L'Open Telemetry Collector peut également être utilisé pour collecter des mesures à partir de nombreux types de sources de télémétrie sans instrumenter les applications à l'aide des SDK. Consultez le site https://opentelemetry.io/ecosystem/registry/?language=collector[Open Telemetry collector integrations] pour plus de détails et pour savoir si votre base de données ou votre protocole de télémétrie est pris en charge.
+
+Suivez le guide de xref:/setup/otel/getting-started/README.adoc[démarrage] pour configurer tous les éléments de manière à ce qu'ils fonctionnent au mieux avec SUSE Observability.
+
+== Références
+
+* https://opentelemetry.io/docs/collector/[Collecteur Open Telemetry] sur la documentation Open Telemetry
+* https://opentelemetry.io/ecosystem/registry/?language=collector[Intégrations de collecteurs de télémétrie ouverts]
+* https://opentelemetry.io/docs/instrumentation/README.md[SDK pour instrumenter votre application] sur la documentation Open Telemetry
