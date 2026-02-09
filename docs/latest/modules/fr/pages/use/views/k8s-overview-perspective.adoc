@@ -1,0 +1,18 @@
+= Vue d'ensemble
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+La perspective d'ensemble affiche une liste de tous les composants de votre vue. Selon le type de vue et les composants de la vue, la structure de la perspective de vue d'ensemble sera différente.
+
+Par exemple, la structure de table utilisée sur les xref:/use/views/k8s-views.adoc[vues kubernetes] reflète les propriétés les plus importantes des types de composants inclus dans chaque vue : comme on le voit ci-dessous, la vue `services` a une structure de table différente de celle de la vue `pods`.
+
+image::k8s/k8s-overview-perspective-table-comparison.png[Comparaison de la structure du tableau synoptique]
+
+Pour les xref:/use/views/k8s-custom-views.adoc[vues personnalisées] et les xref:/use/views/k8s-explore-views.adoc[vues d'exploration], le tableau de la perspective d'ensemble aura une structure générique unique, composée des propriétés les plus courantes, en raison de la diversité des types de composants qui peuvent être inclus dans la vue.
+
+image::k8s/k8s-overview-perspective-generic-table.png[Tableau récapitulatif structure générique]
+
+Bien que la plupart des types de vues de la perspective de vue d'ensemble utilisent une présentation sous forme de tableau, dans certains cas, une présentation sous forme de cartes est également fournie, ce qui vous permet de passer d'un mode d'affichage du contenu de la perspective de vue d'ensemble à un autre.
+
+image::k8s/k8s-overview-perspective-cards-layout.png[Vue d'ensemble de la présentation des cartes]
