@@ -1,0 +1,77 @@
+= Références métriques 
+:revdate: 2025-11-07
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+Cette page définit les mesures communes liées à Kubernetes collectées par SUSE Observability et explique comment elles sont calculées.
+
+=== utilisation_mémoire_du_conteneur
+
+[horizontal]
+Nom:: `container_memory_usage`
+Type:: jauge
+Unité:: bytes
+Source:: Lecture directe de la hiérarchie du cgroup du conteneur.
+
+[cols="1,3"]
+|===
+|Version du cgroup | Fichier source
+
+|v1 | `memory.usage_in_bytes`
+|v2 | `memory.current`
+|===
+
+Résumé:: La quantité totale de mémoire actuellement utilisée par le cgroup et ses descendants. Il s'agit d'une somme qui comprend la mémoire anonyme (RSS), le cache de page et la mémoire du noyau. Utilisez l'une des mesures suivantes pour obtenir plus de détails sur une zone de mémoire spécifique.
+
+=== container_memory_kernel
+
+[horizontal]
+Nom:: `container_memory_kernel`
+Type:: jauge
+Unité:: bytes
+Source:: Lecture directe de la hiérarchie du cgroup du conteneur.
+
+[cols="1,3"]
+|===
+|Version du cgroup | Fichier source
+
+|v1 | `memory.kmem.usage_in_bytes`
+|v2 | `memory.stat` -> `kernel` dans le fichier
+|===
+Résumé:: Quantité de mémoire totale du noyau, y compris (kernel_stack, pagetables, percpu, vmalloc, slab)
+
+=== conteneur_mémoire_rss
+
+[horizontal]
+Nom:: `container_memory_rss`
+Type:: jauge
+Unité:: bytes
+Source:: Lecture directe de la hiérarchie du cgroup du conteneur.
+
+[cols="1,3"]
+|===
+|Version du cgroup | Fichier source
+
+|v1 | `memory.stat` -> `total_rss` dans le fichier
+|v2 | `memory.stat` -> `anon` dans le fichier
+|===
+Résumé:: La taille de l'ensemble résident (RSS) de la mémoire anonyme. Il s'agit de la mémoire non adossée à des fichiers (tas et pile) activement utilisée par les processus au sein du cgroup. Cette valeur reflète souvent le véritable "ensemble de travail" de l'application. 
+
+=== container_memory_cache
+
+[horizontal]
+Nom:: `container_memory_cache`
+Type:: jauge
+Unité:: bytes
+Source:: Lecture directe de la hiérarchie du cgroup du conteneur.
+
+[cols="1,3"]
+|===
+|Version du cgroup | Fichier source
+
+|v1 | `memory.stat` -> `total_cache` dans le fichier
+|v2 | `memory.stat` -> `file` dans le fichier
+|===
+Résumé:: Le cache de page (mémoire utilisée pour mettre en cache les données du système de fichiers, y compris les tmpfs et la mémoire partagée).
