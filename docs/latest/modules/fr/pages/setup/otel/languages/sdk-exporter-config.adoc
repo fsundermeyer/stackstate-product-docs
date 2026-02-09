@@ -1,0 +1,56 @@
+= Configuration de l'exportateur
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Tous les SDK, quelle que soit la langue, utilisent la même configuration de base pour définir le Open Telemetry https://opentelemetry.io/docs/concepts/glossary/#_service[nom du service] et le point final de l'exportateur (c'est-à-dire l'endroit où la télémétrie est envoyée).
+
+Ceux-ci peuvent être configurés en définissant des variables d'environnement pour votre application instrumentée.
+
+Dans Kubernetes, définissez ces variables d'environnement dans le manifeste de votre charge de travail (remplacez `<the-service-name>` par le nom de votre service d'application) :
+
+[,yaml]
+----
+...
+spec:
+  containers:
+  - env:
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: http://opentelemetry-collector.open-telemetry.svc.cluster.local:4317
+    - name: OTEL_SERVICE_NAME
+      value: <the-service-name>
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: grpc
+...
+----
+
+Le point final spécifié dans l'exemple suppose que le collecteur a été installé en utilisant les valeurs par défaut du xref:/setup/otel/collector.adoc[guide d'installation]. Il utilise le port `4317` qui utilise la version `gRPC` du protocole OTLP. Certains instruments ne prennent en charge que le protocole HTTP ; dans ce cas, il convient d'utiliser le port `4318`.
+
+Le nom du service peut également être dérivé des étiquettes Kubernetes qui peuvent déjà être présentes. Voici un exemple :
+
+[,yaml]
+----
+spec:
+  containers:
+  - env:
+    - name: OTEL_SERVICE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.labels['app.kubernetes.io/component']
+----
+
+== gRPC vs HTTP
+
+OTLP, le protocole de télémétrie ouvert, prend en charge gRPC et protobuf sur HTTP. Certains SDK prennent également en charge JSON via HTTP. Dans la section précédente, le protocole de l'exportateur est défini sur `gRPC`, ce qui donne généralement les meilleures performances et constitue la valeur par défaut de nombreux SDK. Toutefois, dans certains cas, cela peut poser problème :
+
+* Certains pare-feu ne sont pas configurés pour gérer gRPC
+* Les proxys (inversés) et les équilibreurs de charge peuvent ne pas prendre en charge gRPC sans configuration supplémentaire.
+* Les connexions de longue durée de gRPC peuvent poser des problèmes lors de l'équilibrage de la charge.
+
+Pour passer à HTTP au lieu de gRPC, changez le protocole en `http` _et_ utilisez le port `4318`.
+
+En résumé, utilisez HTTP au cas où gRPC rencontrerait des problèmes :
+
+* `grpc` le protocole utilise le port `4317`
+* `http` le protocole utilise le port `4318`
