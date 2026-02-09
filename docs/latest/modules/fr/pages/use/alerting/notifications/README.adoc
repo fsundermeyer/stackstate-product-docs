@@ -1,0 +1,8 @@
+= Notifications
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Les notifications dans SUSE Observability permettent d'avertir les applications tierces lorsqu'un xref:/use/alerting/k8s-monitors.adoc[moniteur de] SUSE Observability se déclenche. Les notifications s'intègrent à des applications tierces telles que des outils de gestion des incidents (comme PagerDuty ou Opsgenie), des systèmes de billetterie (comme JIRA, ServiceNow) ou d'autres plateformes de collaboration (comme Slack). D'autres outils peuvent désigner les notifications par le terme d'alertes.
+
+Les notifications sont déclenchées par les changements d'état des moniteurs sur les composants SUSE Observability. Les informations relatives à l'état de santé, aux composants et à la surveillance sont envoyées à ces systèmes externes via les canaux de notification configurés.
