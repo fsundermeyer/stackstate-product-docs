@@ -1,0 +1,29 @@
+= Explorer les métriques
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Vous trouverez l'explorateur de métriques au bas du menu principal de SUSE Observability. Il permet d'exécuter n'importe quelle requête PromQL et de visualiser les séries temporelles résultantes. Le résultat de la requête est affiché dans un graphique pour l'intervalle de temps sélectionné et dans un tableau qui montre la dernière valeur ainsi que les étiquettes de la série temporelle.
+
+image::k8s/k8s-metrics-explorer.png[Explorateur de métriques]
+
+== Requêtes PromQL
+
+ifdef::ss-ff-stackpacks2_enabled[]
+Le champ de saisie de la requête comporte des suggestions automatiques pour les noms de métriques, les noms et valeurs d'étiquettes et les fonctions PromQL prises en charge. Voir la documentation Prometheus pour un complète https://prometheus.io/docs/prometheus/latest/querying/basics/[guide et une référence]. SUSE Observability ajoute également deux paramètres par défaut qui peuvent être utilisés dans n'importe quelle requête : `${__interval}` et `${__rate_interval}`. Ils peuvent être utilisés pour adapter automatiquement l'intervalle d'agrégation à la résolution de la cartexref:/setup/custom-integrations/metric-bindings/writing-promql.adoc[(plus de détails).]
+endif::[]
+
+ifndef::ss-ff-stackpacks2_enabled[]
+Le champ de saisie de la requête comporte des suggestions automatiques pour les noms de métriques, les noms et valeurs d'étiquettes et les fonctions PromQL prises en charge. Voir la documentation Prometheus pour un complète https://prometheus.io/docs/prometheus/latest/querying/basics/[guide et une référence]. SUSE Observability ajoute également deux paramètres par défaut qui peuvent être utilisés dans n'importe quelle requête : `${__interval}` et `${__rate_interval}`. Ils peuvent être utilisés pour adapter automatiquement l'intervalle d'agrégation à la résolution de la cartexref:/use/metrics/k8s-writing-promql-for-charts.adoc[(plus de détails).]
+endif::[]
+
+== Voir aussi
+
+* xref:/use/metrics/k8s-writing-promql-for-charts.adoc[Rédaction de requêtes PromQL pour des graphiques représentatifs]
+* https://prometheus.io/docs/prometheus/latest/querying/basics/[Documentation PromQL]
+* https://prometheus.io/docs/prometheus/latest/querying/operators/[Opérateurs PromQL]
+* https://prometheus.io/docs/prometheus/latest/querying/functions/[Fonctions PromQL]
+* https://promlabs.com/blog/2020/06/18/the-anatomy-of-a-promql-query/[Anatomie d'une requête PromQL]
+* https://promlabs.com/blog/2020/07/02/selecting-data-in-promql/[Sélection de données dans PromQL]
+* https://iximiuz.com/en/posts/prometheus-vector-matching/[Comment joindre plusieurs métriques]
+* https://iximiuz.com/en/posts/prometheus-functions-agg-over-time/[Agrégation dans le temps]

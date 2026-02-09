@@ -1,0 +1,30 @@
+= Qu'est-ce que le dépannage guidé ?
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+Le dépannage guidé avec SUSE Observability est une approche puissante qui permet d'accélérer la résolution des problèmes en offrant des informations ciblées et exploitables tout au long du processus de dépannage. En exploitant des algorithmes avancés, SUSE Observability fournit des conseils de dépannage, une assistance visuelle et des directives étape par étape adaptées à votre environnement spécifique. Cela permet non seulement de rationaliser le processus d'identification et de résolution des problèmes, mais aussi de donner aux ingénieurs chargés de la fiabilité des sites (SRE) les moyens de mieux soutenir leurs équipes de développement.
+
+Grâce à la remédiation guidée de SUSE Observability, les ingénieurs peuvent garantir des services cohérents et de haute qualité, et partager leur expertise avec les autres membres de l'équipe. En outre, nos guides d'assainissement peuvent être facilement étendus ou modifiés pour s'adapter à votre environnement unique, ce qui en fait un outil inestimable pour maintenir la fiabilité et la performance des services.
+
+Les moniteurs préconfigurés qui examinent les bons éléments et émettent des alertes au bon moment sont enrichis d'indications claires pour permettre aux ingénieurs de remédier aux problèmes. Ces conseils permettent à chaque ingénieur de comprendre immédiatement ce qui doit être fait pour remédier à la situation. En outre, une fois le problème résolu, ces informations soutiendront le processus d'analyse rétrospective irréprochable visant à déterminer ce qui doit être amélioré.
+
+== Remédier aux problèmes grâce à un dépannage guidé
+
+Pour remédier rapidement à la situation, SUSE Observability propose un rapport de problème clair et un guide de remédiation regroupés dans un seul écran. Il contient les éléments suivants :
+
+. Une brève description pour expliquer le problème aux personnes qui ne le connaissent pas bien.
+. Quelques informations sur ce problème, telles que l'état de santé, l'heure de déclenchement et, le cas échéant, une raison.
+. La mesure de soutien indique comment la question a évolué dans le temps.
+. Souvent, les problèmes ne sont pas isolés. Parfois, ils sont à l'origine d'autres problèmes, ou le véritable problème est causé par un autre composant. SUSE Observability suit les relations entre tous les composants et vous avertit des problèmes qui y sont liés.
+. Le guide de remédiation lui-même vous guide pas à pas dans la résolution du problème.
+
+image::k8s/guided-troubleshooting.png[]
+
+== Utilisation d'éléments épinglés lors du dépannage
+
+Vous pouvez garder un guide de remédiation à portée de main pendant le dépannage en l'ajoutant aux *éléments épinglés*. Cliquez sur le bouton *Ajouter aux éléments épinglés* pour épingler le guide de remédiation pour le moniteur actuel. Vous pouvez désormais suivre les instructions étape par étape, même lorsque vous fermez le moniteur déclenché. Vous pouvez accéder à tous les guides de remédiation épinglés à partir du menu des éléments épinglés. Lorsque vous avez terminé le dépannage, il vous suffit de retirer le guide du menu.
+
+image::k8s/k8s-pinned-items.png[]
