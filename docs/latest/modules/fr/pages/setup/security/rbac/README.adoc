@@ -1,0 +1,35 @@
+= Contrôle d'accès basé sur les rôles (RBAC)
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+La gestion des accès vous aide à gérer les personnes qui ont accès aux éléments spécifiques de la topologie, aux données métriques, aux traces, aux éléments de l'interface utilisateur et aux API qu'elles peuvent appeler.
+
+RBAC est un système d'autorisation qui permet de gérer finement l'accès aux ressources de SUSE Observability, d'auditer facilement les privilèges des utilisateurs et de résoudre les problèmes identifiés en matière de droits d'accès.
+
+== Que peut-on faire avec RBAC ?
+
+Voici quelques exemples de ce que vous pouvez faire avec RBAC :
+
+* Permettre à un utilisateur d'avoir accès uniquement au cluster de développement, à un autre d'avoir accès à la fois au cluster de production et au cluster de développement, et à un troisième d'avoir accès au cluster de développement et à un seul espace de noms dans le cluster de production.
+* Donnez à un petit groupe d'utilisateurs un rôle d'administrateur pour installer et configurer SUSE Observability. Tout en donnant à tous les développeurs un rôle de dépanneur leur permettant de visualiser l'ensemble de la topologie, des mesures, des traces, des journaux et des événements, mais avec une capacité de configuration limitée.
+
+== Qu'est-ce qu'un rôle dans SUSE Observability ?
+
+Dans SUSE Observability, un rôle est une combinaison d'un sujet configuré et d'un ensemble de xref:/setup/security/rbac/rbac_permissions.adoc[permissions]. Le processus de configuration d'un rôle dans SUSE Observability est décrit dans la section xref:/setup/security/rbac/rbac_roles.adoc[Comment configurer des rôles.]
+
+== Sources des rôles RBAC
+
+Vous pouvez définir les rôles de plusieurs manières.  Tous utilisent les mêmes xref:/setup/security/rbac/rbac_permissions.adoc[autorisations].
+
+* **Configuration** - dans les xref:setup/security/rbac/rbac_roles.adoc#_custom_roles_via_the_configuration_file[valeurs de barre] pour SUSE Observability
+* **Dynamique** - xref:setup/security/rbac/rbac_roles.adoc#_custom_roles_via_the_cli[utiliser le CLI `sts` ]
+* **Mappé à partir de Kubernetes** - xref:/setup/security/rbac/rbac_rancher.adoc[mappez Kubernetes `Roles` et] xref:/setup/security/rbac/rbac_rancher.adoc[ `RoleBindings`]
+
+== En savoir plus sur la configuration RBAC
+
+* xref:/setup/security/rbac/rbac_permissions.adoc[Permissions]
+* xref:/setup/security/rbac/rbac_roles.adoc[Comment définir les rôles]
+* xref:/setup/security/rbac/rbac_rancher.adoc[Utilisation avec Rancher]
+* xref:/setup/security/rbac/rbac_scopes.adoc[Scopes]
+* xref:/setup/security/authentication/README.adoc[Comment configurer l'authentification]
