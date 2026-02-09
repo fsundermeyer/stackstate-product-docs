@@ -1,0 +1,103 @@
+= Remplacer les arguments de seuil de surveillance par des annotations kubernetes
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+SUSE Observability fournit des xref:/use/alerting/k8s-monitors.adoc[moniteurs prêts à] l xref:/use/alerting/k8s-monitors.adoc['emploi], qui permettent de surveiller les problèmes courants pouvant survenir dans un cluster Kubernetes. Ces moniteurs fonctionnent avec certains arguments par défaut qui conviennent à la plupart des cas d'utilisation, mais il est parfois nécessaire d'adapter leur comportement en remplaçant certains de ces arguments par défaut comme `threshold` ou `failureState`.
+Le mécanisme de déclaration des dérogations se fait par le biais d'annotations de ressources kubernetes qui indiquent à quel moniteur et à quel composant elles doivent s'appliquer. Par exemple, nous pourrions remplacer le moniteur `failureState` par le moniteur `Available service endpoints` pour un service spécifique pour lequel nous voulons signaler un état `CRITICAL` en cas d'échec plutôt que l'état par défaut `DEVIATING`.
+
+== Comment faire
+
+* <<_how_to_build_my_annotation,Comment construire mon annotation>>
+* <<_what_monitors_allow_overriding_arguments,Quels sont les moniteurs qui autorisent la substitution d'arguments ?>>
+* <<_build_an_override_for_a_custom_monitor,Créer une dérogation pour un moniteur personnalisé>>
+
+À titre d'exemple, les étapes remplaceront les arguments pour le moniteur `Available service endpoints` des services HTTP de Kubernetes.
+
+== Comment construire mon annotation
+
+Les clés d'annotations d'annulation pour les moniteurs SUSE Observability suivent la convention suivante :
+
+----
+monitor.${owner}.stackstate.io/${monitorShorName}
+----
+
+La propriété `owner` représente la personne qui a créé ce moniteur, pour les moniteurs prêts à l'emploi, c'est `kubernetes-v2`, et la propriété `monitorShorName` représente l'identifiant du moniteur et peut être extraite de la propriété `identifier` d'un moniteur qui peut être lue dans le client lors de l'établissement de la liste ou de l'inspection des moniteurs.
+
+----
+sts monitor list
+
+ID              | STATUS  | IDENTIFIER                                                                          | NAME                                        | FUNCTION ID     | TAGS
+8051105457030   | ENABLED | urn:stackpack:kubernetes-v2:shared:monitor:kubernetes-v2:service-available-endpoint | Available service endpoints                 | 233276809885571 | [services]
+----
+
+Dans notre exemple, l'identifiant est `urn:stackpack:kubernetes-v2:shared:monitor:kubernetes-v2:service-available-endpoint` et `monitorShorName` correspond au tout dernier segment, comme dans `service-available-endpoint`. La clé d'annotation est donc la suivante :
+
+[,bash]
+----
+monitor.kubernetes-v2.stackstate.io/service-available-endpoint
+----
+
+la charge utile de l'annotation est un objet JSON dans lequel les arguments facultatifs suivants peuvent être définis :
+
+* `threshold`Un seuil numérique par rapport auquel la comparaison doit être effectuée.
+* `failureState`: facultatif. Soit "CRITIQUE", soit "DÉVIATEUR". "CRITICAL" apparaîtra en lecture dans SUSE Observability et "DEVIATING" en orange, pour indiquer une gravité différente.
+* `enabled`: facultatif. Booléen qui détermine si le moniteur doit produire un état de santé pour ce composant.
+
+L'annotation complète ressemblerait alors à
+
+[,bash]
+----
+    monitor.kubernetes-v2.stackstate.io/service-available-endpoint: |-
+      {
+        "threshold": 0.0,
+        "failureState": "CRITICAL",
+        "enabled": true
+      }
+----
+
+== Quels sont les moniteurs qui autorisent la substitution d'arguments ?
+
+* xref:/use/alerting/kubernetes-monitors.adoc#_available_service_endpoints[Points d'extrémité de service disponibles]
+* xref:/use/alerting/kubernetes-monitors.adoc#_cpu_limits_resourcequota[Limites de l'unité centrale (Cpu) quota de ressources]
+* xref:/use/alerting/kubernetes-monitors.adoc#_cpu_requests_resourcequota[Demandes de CPU quota de ressources]
+* xref:/use/alerting/kubernetes-monitors.adoc#_memory_limits_resourcequota[Limites de mémoire resourcequota]
+* xref:/use/alerting/kubernetes-monitors.adoc#_memory_requests_resourcequota[Demandes de mémoire resourcequota]
+* xref:/use/alerting/kubernetes-monitors.adoc#_node_disk_pressure[Pression du disque du nœud]
+* xref:/use/alerting/kubernetes-monitors.adoc#_node_memory_pressure[Pression de la mémoire du nœud]
+* xref:/use/alerting/kubernetes-monitors.adoc#_node_pid_pressure[Nœud PID Pression]
+* xref:/use/alerting/kubernetes-monitors.adoc#_node_readiness[Préparation du nœud]
+* xref:/use/alerting/kubernetes-monitors.adoc#_orphaned_persistent_volumes[Volumes persistants orphelins] (uniquement la propriété `enabled` )
+* xref:/use/alerting/kubernetes-monitors.adoc#_out_of_memory_for_containers[Manque de mémoire pour les conteneurs]
+* xref:/use/alerting/kubernetes-monitors.adoc#_http_5xx_error_ratio[HTTP - Rapport d'erreur 5xx]
+* xref:/use/alerting/kubernetes-monitors.adoc#_http_response_time_q95_is_above_3_seconds[HTTP - temps de réponse - Q95 est supérieur à 3 secondes]
+
+== Créer une dérogation pour un moniteur personnalisé
+
+Tout moniteur de seuil personnalisé créé à l'aide du guide xref:/use/alerting/k8s-add-monitors-cli.adoc[Ajouter un moniteur de seuil aux composants à l'aide de l'interface de programmation] est adapté aux arguments d'annulation, comme le xref:/use/alerting/k8s-add-monitors-cli.adoc#_write_the_outline_of_the_monitor[montre l'exemple], un identifiant pour un moniteur personnalisé est structuré comme ``+urn:custom:monitor :{monitorShortName}``+et la clé d'annotation d'annulation pour un tel identifiant est censée être
+
+[,bash]
+----
+monitor.custom.stackstate.io/${monitorShortName}
+----
+
+L'exemple utilise l'identifiant `urn:custom:monitor:deployment-has-replicas` et la clé d'annotation est donc la suivante
+
+[,bash]
+----
+monitor.custom.stackstate.io/deployment-has-replicas
+----
+
+L'annotation complète ressemblerait à
+
+[,bash]
+----
+    monitor.custom.stackstate.io/deployment-has-replicas: |-
+      {
+        "threshold": 0.0,
+        "failureState": "CRITICAL"
+        "enabled": true
+      }
+----
