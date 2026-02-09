@@ -1,0 +1,323 @@
+= Installation d'OpenShift
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+== Avant de commencer
+
+[NOTE]
+====
+Notes supplémentaires pour l'installation :
+
+* *Clusters OpenShift avec des permissions limitées*: Lire les xref:/setup/install-stackstate/kubernetes_openshift/required_permissions.adoc[autorisations requises].
+* *Kubernetes*: Reportez-vous aux xref:/setup/install-stackstate/kubernetes_openshift/kubernetes_install.adoc[instructions d'installation de Kubernetes].
+====
+
+
+Avant de commencer l'installation de SUSE Observability :
+
+* Vérifiez que votre environnement OpenShift répond aux xref:/setup/install-stackstate/requirements.adoc[exigences.]
+* Assurez-vous que les outils de ligne de commande OpenShift sont installés (`oc`).
+* Ajouter le dépôt SUSE Observability helm au client helm local :
+
+[,text]
+----
+helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+helm repo update
+----
+
+== Installer SUSE Observability
+
+[NOTE]
+====
+Pour les environnements sans accès à l'internet, également connus sous le nom d'environnements "air-gapped", suivez d'abord xref:/k8s-suse-rancher-prime-air-gapped.adoc[ces instructions supplémentaires.]
+
+Veillez également à suivre les instructions d'installation des gaines d'air lorsqu'elles sont présentes pour une étape.
+====
+
+
+. xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_create_project[Créer le projet dans lequel SUSE Observability sera installé]
+. xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_generate_baseconfig_values_yaml_and_sizing_values_yaml[Générer `baseConfig_values.yaml` et `sizing_values.yaml`]
+. xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_create_openshift_values_yaml[Créer le fichier `openshift-values.yaml` ]
+. xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_deploy_suse_observability_with_helm[Déployer SUSE Observability avec Helm]
+. xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_access_the_suse_observability_ui[Accéder à l'interface utilisateur de SUSE Observability]
+. xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_manually_create_securitycontextconfiguration_objects[Créer manuellement des objets `SecurityContextConfiguration` ]
+
+=== Créer un projet
+
+Commencez par créer le projet dans lequel vous souhaitez installer SUSE Observability. Dans notre démonstration, nous utiliserons l'espace de noms `suse-observability`:
+
+[,text]
+----
+oc new-project suse-observability
+----
+
+[NOTE]
+====
+Le nom du projet est utilisé dans les commandes `helm` et `kubectl` comme nom d'espace de noms dans l'indicateur `--namespace`.
+====
+
+
+=== Générer `baseConfig_values.yaml` et `sizing_values.yaml`
+
+Le fichier `baseConfig_values.yaml` est nécessaire pour déployer StackState avec Helm. Il contient votre clé de licence StackState, la clé API du récepteur StackState et d'autres informations importantes.
+Le fichier `sizing_values.yaml` est recommandé pour déployer StackState avec Helm car il contient des informations sur les ressources avec lesquelles StackState sera approvisionné en fonction de la taille du paysage que vous souhaitez observer.
+Le fichier `affinity_values.yaml` contient des affinités Kubernetes pour déployer SUSE Observability avec différentes options de planification.
+
+[NOTE]
+====
+*Avant de poursuivre :* Assurez-vous d'avoir la dernière version des cartes Helm avec `helm repo update`.
+====
+
+
+Vous pouvez générer les fichiers SUSE Observability `baseConfig_values.yaml`, `sizing_values.yaml`, et `affinity_values.yaml` en exécutant un diagramme Helm séparé. Le graphique `suse-observability/suse-observability-values`. Voici un exemple de ligne de commande :
+
+[,text]
+----
+export VALUES_DIR=.
+helm template \
+  --set license='<your license>' \
+  --set baseUrl='<suse-observability-base-url>' \
+  --set sizing.profile='<sizing.profile>' \
+  suse-observability-values \
+  suse-observability/suse-observability-values --output-dir $VALUES_DIR
+----
+
+Cette commande génère les fichiers `$VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml`, `$VALUES_DIR/suse-observability-values/templates/sizing_values.yaml`, et `$VALUES_DIR/suse-observability-values/templates/affinity_values.yaml` contenant la configuration nécessaire à l'installation de SUSE Observability Helm Chart.
+
+[NOTE]
+====
+Les mots de passe de l'administrateur de SUSE Observability seront générés automatiquement par la commande ci-dessus et seront affichés sous forme de commentaires dans le fichier `basicConfig.yaml` généré. Les valeurs réelles contiennent les hachages `bcrypt` de ces mots de passe afin qu'ils soient stockés en toute sécurité dans la version Helm du cluster.
+====
+
+
+Les valeurs qui peuvent être transmises à ce graphique sont les suivantes :
+
+|===
+| Configuration | Valeur | Description
+
+| La configuration de base génère
+| `basicConfig.generate`
+| Active ou désactive la génération du fichier `basicConfig_values.yaml`.
+
+| Clé API du récepteur
+| `receiverApiKey`
+| Clé API utilisée par SUSE Observability pour recevoir les données des agents. Il s'agit d'une clé secrète qui doit rester confidentielle. Si vous ne le faites pas, une clé aléatoire sera générée pour vous.
+
+| URL de base
+| `baseUrl`
+| Le site `<STACKSTATE_BASE_URL>`. Il s'agit de l'URL par laquelle SUSE Observability sera accessible à Rancher, aux utilisateurs et à l'agent SUSE Observability. Elle doit correspondre à l'URL qu'un utilisateur saisira dans le navigateur pour ouvrir l'interface utilisateur. Elle doit donc inclure le schéma et tout port personnalisé, par exemple `https://observability.internal.mycompany.com` (qui utilise le port par défaut). Voir aussi l'xref:/setup/install-stackstate/kubernetes_openshift/ingress.adoc[accès à {stackstate-product-name}]. 
+
+| Nom d'utilisateur et mot de passe**
+| `-u` `-p`
+| Le nom d'utilisateur et le mot de passe utilisés par SUSE Observability pour extraire les images. Pour les environnements air-gapped, il s'agit du nom d'utilisateur et du mot de passe du registre local de Docker.
+
+| Clé de licence
+| `license`
+| La clé de licence de SUSE Observability.
+
+| Mot de passe par défaut
+| `adminPassword`
+| Le mot de passe de l'utilisateur par défaut (`admin`) pour accéder à l'interface utilisateur de SUSE Observability. Si vous ne le faites pas, un mot de passe aléatoire sera généré pour vous. Si vous transmettez cette valeur et qu'elle n'est pas hachée par bcrypt, le graphique la hachera pour vous.
+
+| Registre des images
+| `imageRegistry`
+| Le registre où sont hébergées les images SUSE Observability. Si elle n'est pas fournie, la valeur par défaut sera 'quay.io'
+
+| Tirer le nom d'utilisateur secret
+| `pullSecret.username`
+| Le nom d'utilisateur utilisé pour extraire des images du registre Docker où les images SUSE Observability sont hébergées.
+
+| Tirer le mot de passe secret
+| `pullSecret.password`
+| Le mot de passe utilisé pour extraire des images du registre Docker où les images SUSE Observability sont hébergées.
+
+| Taille générer
+| `sizing.generate`
+| Active ou désactive la génération du fichier `sizing_values.yaml`.
+
+| Profil de dimensionnement
+| `sizing.profile`
+| Essai unique, 10-nonha, 20-nonha, 50-nonha, 100-nonha, 150-ha, 250-ha, 500-ha. Sur la base de ces profils, vous pouvez générer le fichier `sizing_values.yaml` contenant les tailles par défaut des ressources et de la configuration SUSE Observability à déployer en mode HA ou Non-HA. Par exemple, 10-nonha produit une adresse `sizing_values.yaml` pour déployer une instance SUSE Observability Non-HA afin d'observer un cluster de 10 nœuds en mode Non Haute Disponibilité. Actuellement, il n'est pas possible de passer d'un environnement Non-HA à un environnement HA. Si vous prévoyez que votre environnement nécessitera l'observation d'environ 150 nœuds, il est préférable d'opter immédiatement pour l'AH.
+
+| Pod AntiAffinité
+| `affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution`
+| Faire en sorte que les répliques des mêmes services de données soient planifiées sur différents nœuds Kubernetes. Uniquement applicable aux profils `HA`. Soit `true` ou `false`. La valeur par défaut est `true` - l'ordonnancement sur différents nœuds est appliqué.
+|===
+
+[NOTE]
+====
+Conservez les fichiers `basicConfig.yaml` et `sizing_values.yaml` générés en toute sécurité. Vous pouvez réutiliser ces fichiers pour les mises à niveau, ce qui permet de gagner du temps et de garantir que SUSE Observability continue d'utiliser la même clé API. Ceci est souhaitable car cela signifie que les agents et autres fournisseurs de données pour SUSE Observability n'auront pas besoin d'être mis à jour.
+Vous pouvez régénérer les fichiers indépendamment en utilisant les commutateurs `basicConfig.generate=false` et `sizing.generate=false` pour désactiver l'un d'entre eux tout en conservant la version précédemment générée du fichier dans le fichier `output-dir`.
+====
+
+[NOTE]
+====
+Le tableau SUSE Observability Values génère des configurations d'affinité que vous pouvez utiliser avec le tableau SUSE Observability principal pour contrôler le comportement de l'ordonnancement des pods. Reportez-vous à la documentation xref:/setup/install-stackstate/kubernetes_openshift/affinity.adoc[Configurer les affinités Kubernetes] pour plus d'informations.
+====
+
+=== Créer `openshift-values.yaml`
+
+OpenShift ayant un modèle de sécurité plus strict que Kubernetes ordinaire, tous les contextes de sécurité standard dans le déploiement doivent être désactivés.
+
+Créez un fichier de valeurs Helm `openshift-values.yaml` avec le contenu suivant et stockez-le à côté du fichier `values.yaml` généré. Elle contient les valeurs nécessaires au déploiement d'OpenShift.
+
+[,yaml]
+----
+elasticsearch:
+  prometheus-elasticsearch-exporter:
+    podSecurityContext: ""
+  sysctlInitContainer:
+    enabled: false
+scc:
+  enabled: true
+----
+
+=== Déployer SUSE Observability avec Helm
+
+Le déploiement recommandé de SUSE Observability est une configuration à haute disponibilité, prête pour la production, avec de nombreux services fonctionnant de manière redondante. Si nécessaire, il est également possible d'exécuter SUSE Observability dans une configuration non redondante, où chaque service ne dispose que d'une seule réplique. Cette configuration n'est recommandée que pour un environnement de test.
+
+Pour les environnements à air comprimé, suivre les instructions pour les installations à air comprimé.
+
+[tabs]
+====
+Mise en place::
++
+--
+
+Pour déployer SUSE Observability dans une configuration de haute disponibilité sur OpenShift :
+
+. Avant de déployer :
+ ** xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_create_project[Créer le projet dans lequel SUSE Observability sera installé]
+ ** <<_generate_baseconfig_values_yaml_and_sizing_values_yaml,Générer `baseConfig_values.yaml` et `sizing_values.yaml`>>
+ ** <<_create_openshift_values_yaml,Créer `openshift_values.yaml`>>
+. Déployez la dernière version de SUSE Observability dans l'espace de noms `suse-observability` à l'aide de la commande suivante :
+
+[,bash]
+----
+helm upgrade \
+  --install \
+  --namespace suse-observability \
+  --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+  --values openshift-values.yaml \
+suse-observability \
+suse-observability/suse-observability
+----
+
+--
+Installation à gaine d'air::
++
+--
+
+Pour déployer SUSE Observability dans une configuration air-gapped sur OpenShift :
+
+. Avant de déployer :
+ ** xref:/setup/install-stackstate/kubernetes_openshift/openshift_install.adoc#_create_project[Créer le projet dans lequel SUSE Observability sera installé]
+ ** <<_generate_baseconfig_values_yaml_and_sizing_values_yaml,Générer `baseConfig_values.yaml` et `sizing_values.yaml`>>
+ ** <<_create_openshift_values_yaml,Créer `openshift_values.yaml`>>
+. Déployez la dernière version de SUSE Observability dans l'espace de noms `suse-observability` à l'aide de la commande suivante :
+
+[,bash]
+----
+helm upgrade \
+  --install \
+  --namespace suse-observability \
+  --values local-docker-registry.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+  --values openshift-values.yaml \
+  --set "clickhouse.sidecars[0].securityContext.runAsUser=null" \
+suse-observability \
+suse-observability-A.B.C.tgz
+----
+
+--
+====
+
+Après l'installation, la version de SUSE Observability devrait être listée dans l'espace de noms de SUSE Observability et tous les pods devraient fonctionner :
+
+[,text]
+----
+# Check the release is listed
+helm list --namespace suse-observability
+
+# Check pods are running
+# It may take some time for all pods to be installed or available
+kubectl get pods --namespace suse-observability
+----
+
+=== Accéder à l'interface utilisateur de SUSE Observability
+
+Après le déploiement de SUSE Observability, vous pouvez vérifier si tous les pods sont opérationnels :
+
+[,bash]
+----
+kubectl get pods --namespace suse-observability
+----
+
+Lorsque tous les pods sont opérationnels, vous pouvez activer un transfert de port :
+
+[,bash]
+----
+kubectl port-forward service/suse-observability-router 8080:8080 --namespace suse-observability
+----
+
+SUSE Observability sera désormais disponible dans votre navigateur à l'adresse `https://localhost:8080`. Connectez-vous avec le nom d'utilisateur `admin` et le mot de passe par défaut fourni dans le fichier `values.yaml`.
+
+Les prochaines étapes sont
+
+* xref:/setup/install-stackstate/kubernetes_openshift/ingress.adoc[Exposer SUSE Observability en dehors de la grappe]
+* xref:/k8s-quick-start-guide.adoc[Commencez à surveiller vos clusters Kubernetes]
+* Permettez à vos xref:/setup/security/authentication/README.adoc[collègues d'y accéder].
+
+== Créer manuellement des objets `SecurityContextConfiguration` 
+
+Si vous ne pouvez pas utiliser un compte administrateur pour installer SUSE Observability sur OpenShift, demandez à votre administrateur d'appliquer les objets ci-dessous `SecurityContextConfiguration`.
+
+[,yaml]
+----
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: {{ template "common.fullname.short" . }}-{{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install
+    suse-observability.io/note: "Ignored by helm uninstall, has to be deleted manually"
+fsGroup:
+  type: RunAsAny
+groups:
+- system:serviceaccounts:{{ .Release.Namespace }}
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- ephemeral
+- persistentVolumeClaim
+- projected
+- secret
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: false
+readOnlyRootFilesystem: false
+seccompProfiles:
+  - runtime/default
+----
+
+== Voir aussi
+
+* Pour d'autres options de configuration et de gestion, consultez la documentation Kubernetes - xref:/setup/install-stackstate/kubernetes_openshift/kubernetes_install.adoc[gérer une installation SUSE Observability Kubernetes].
