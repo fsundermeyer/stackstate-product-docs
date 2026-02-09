@@ -1,0 +1,32 @@
+= Dépannage des moniteurs
+:revdate: 2026-01-14
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+* <<_the_result_of_the_monitor_isnt_showing_on_a_component,Le résultat du moniteur ne s'affiche pas sur un composant>>
+* <<_the_monitor_is_showing_an_error_in_the_monitor_status_overview,Le moniteur affiche une erreur dans l'aperçu de l'état du moniteur.>>
+
+=== Le résultat du moniteur ne s'affiche pas sur un composant
+
+Vérifiez d'abord si le moniteur xref:/setup/custom-integrations/monitors/index.adoc#_verify_the_execution_of_the_monitor[produit] effectivement xref:/setup/custom-integrations/monitors/index.adoc#_verify_the_execution_of_the_monitor[des résultats]. Si c'est le cas mais que les résultats du moniteur ne s'affichent pas sur les composants, il se peut qu'il y ait un problème au niveau de la liaison. Utilisez d'abord la commande suivante pour vérifier :
+
+[,bash]
+----
+sts monitor status --id <id>
+----
+
+Si la sortie contient `Monitor health states with identifier which has no matching topology element (<nr>): ....`, cela signifie que le site `urnTemplate` ne peut pas générer un identifiant correspondant à la topologie. Pour y remédier xref:/setup/custom-integrations/monitors/index.adoc#_bind_the_results_of_the_monitor_to_the_correct_components[, il faut revoir le modèle d'urne (urnTemplate]).
+
+=== Le moniteur affiche une erreur dans l'aperçu de l'état du moniteur.
+
+Obtenir l'état du moniteur par l'intermédiaire de la CLI
+
+[,bash]
+----
+sts monitor status --id <id>
+----
+
+La section `Monitor Stream errors:` indique les erreurs qui se produisent sur le moniteur et propose une aide supplémentaire.
+

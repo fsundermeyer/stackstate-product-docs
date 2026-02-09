@@ -1,0 +1,197 @@
+= Exposer SUSE Observability en dehors de la grappe
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+== Vue d'ensemble
+
+SUSE Observability peut être exposé avec une ressource Kubernetes Ingress. L'exemple de cette page montre comment configurer un contrôleur nginx-ingress à l'aide de xref:/setup/install-stackstate/kubernetes_openshift/ingress.adoc#_configure_ingress_via_the_suse_observability_helm_chart[Helm pour SUSE Observability fonctionnant sur Kubernetes]. Cette page indique également la combinaison service/port à exposer en cas d'utilisation d'une méthode différente de configuration du trafic entrant.
+
+Lors de l'observation du cluster qui héberge également SUSE Observability, le trafic de l'agent peut être maintenu entièrement au sein du cluster lui-même en xref:/setup/install-stackstate/kubernetes_openshift/ingress.adoc#_agents_in_the_same_cluster[modifiant la configuration de l'agent] lors de son installation.
+
+== Configurer l'entrée via le tableau SUSE Observability Helm
+
+Le tableau SUSE Observability Helm présente une section `ingress` dans ses valeurs. Cette fonction est désactivée par défaut. L'exemple ci-dessous montre comment utiliser le graphique Helm pour configurer un contrôleur nginx-ingress avec le cryptage TLS activé. Il est à noter que la configuration du contrôleur lui-même et des certificats dépasse le cadre de ce document.
+
+Pour configurer l'entrée pour SUSE Observability, créez un fichier `ingress_values.yaml` avec un contenu comme ci-dessous. Remplacez `MY_DOMAIN` par votre propre domaine (qui est lié à votre contrôleur d'entrée) et définissez le nom correct pour `tls-secret`. Consultez la documentation de votre contrôleur d'entrée pour connaître les annotations correctes à définir. Tous les champs ci-dessous sont facultatifs. Par exemple, si TLS n'est pas utilisé, omettez cette section, mais sachez que SUSE Observability ne crypte pas non plus le trafic.
+
+[CAUTION]
+====
+Notez que la configuration de TLS est nécessaire pour l'utilisation de l'extension rancher UI.
+====
+
+
+[,text]
+----
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: stackstate.MY_DOMAIN
+  tls:
+    - hosts:
+        - stackstate.MY_DOMAIN
+      secretName: tls-secret
+----
+
+Ce qui ressort de ce fichier, c'est l'annotation de Nginx visant à augmenter la valeur autorisée de `proxy-body-size` à `50m` (plus grande que toute demande attendue). Par défaut, Nginx autorise des corps d'une taille maximale de `1m`. Les agents SUSE Observability et d'autres fournisseurs de données peuvent parfois envoyer des requêtes beaucoup plus importantes. C'est pourquoi vous devez vous assurer que la taille du corps autorisée est suffisamment grande, que vous utilisiez Nginx ou un autre contrôleur d'entrée. Veillez à mettre à jour le site `baseUrl` dans le fichier de valeurs généré lors de l'installation initiale, car il sera utilisé par SUSE Observability pour générer des instructions d'installation pratiques pour l'agent.
+
+L'exemple utilise le champ `ingressClassName` pour spécifier la https://kubernetes.io/docs/concepts/services-networking/ingress/#_ingress_class[classe d'entrée] au lieu de l'annotation obsolète `kubernetes.io/ingress.class`. Si une classe d'entrée par défaut est définie dans votre cluster, le champ "ingress class name" (nom de la classe d'entrée) peut être omis.
+
+Incluez le fichier `ingress_values.yaml` lorsque vous exécutez la commande `helm upgrade` pour déployer SUSE Observability :
+
+[,text]
+----
+helm upgrade --install \
+  --namespace "suse-observability" \
+  --values "ingress_values.yaml" \
+  --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+suse-observability \
+suse-observability/suse-observability
+----
+
+[NOTE]
+====
+Cette étape suppose que xref:/setup/install-stackstate/kubernetes_openshift/kubernetes_install.adoc#_generate_baseconfig_values.yaml_and_sizing_values.yaml[Generate `baseConfig_values.yaml` et `sizing_values.yaml`] a déjà été exécuté.
+====
+
+== Configuration de la règle d'entrée pour la télémétrie ouverte
+
+La carte SUSE Observability Helm expose un service `opentelemetry-collector` dans ses valeurs où un `ingress` dédié peut être créé. Cette fonction est désactivée par défaut. L'entrée nécessaire pour `opentelemetry-collector` doit prendre en charge le protocole GRPC. L'exemple ci-dessous montre comment utiliser le graphique Helm pour configurer un contrôleur nginx-ingress avec GRPC et le cryptage TLS activé. Il est à noter que la configuration du contrôleur lui-même et des certificats dépasse le cadre de ce document.
+
+Pour configurer l'entrée `opentelemetry-collector` pour SUSE Observability, créez un fichier `ingress_otel_values.yaml` avec un contenu similaire à celui ci-dessous. Remplacez `MY_DOMAIN` par votre propre domaine (qui est lié à votre contrôleur d'entrée) et définissez le nom correct pour `otlp-tls-secret`. Consultez la documentation de votre contrôleur d'entrée pour connaître les annotations correctes à définir. Tous les champs ci-dessous sont facultatifs. Par exemple, si TLS n'est pas utilisé, omettez cette section, mais sachez que SUSE Observability ne crypte pas non plus le trafic.
+
+[,text]
+----
+opentelemetry-collector:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    hosts:
+      - host: otlp-stackstate.MY_DOMAIN
+        paths:
+          - path: /
+            pathType: Prefix
+            port: 4317
+    tls:
+      - hosts:
+          - otlp-stackstate.MY_DOMAIN
+        secretName: otlp-tls-secret
+    additionalIngresses:
+      - name: otlp-http
+        annotations:
+          nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+        hosts:
+          - host: otlp-http-stackstate.MY_DOMAIN
+            paths:
+              - path: /
+                pathType: Prefix
+                port: 4318
+        tls:
+          - hosts:
+              - otlp-http-stackstate.MY_DOMAIN
+            secretName: otlp-http-tls-secret
+----
+
+Ce qui ressort de ce fichier, c'est l'annotation de Nginx visant à augmenter la valeur autorisée de `proxy-body-size` à `50m` (plus grande que toute demande attendue). Par défaut, Nginx autorise des corps d'une taille maximale de `1m`. Les agents SUSE Observability et d'autres fournisseurs de données peuvent parfois envoyer des requêtes beaucoup plus importantes. C'est pourquoi vous devez vous assurer que la taille du corps autorisée est suffisamment grande, que vous utilisiez Nginx ou un autre contrôleur d'entrée. Veillez à mettre à jour le site `baseUrl` dans le fichier de valeurs généré lors de l'installation initiale, car il sera utilisé par SUSE Observability pour générer des instructions d'installation pratiques pour l'agent.
+
+L'exemple utilise le champ `ingressClassName` pour spécifier l' https://kubernetes.io/docs/concepts/services-networking/ingress/#_ingress_class[entrée] lieu de l'annotation obsolète `kubernetes.io/ingress.class`. Si une classe d'entrée par défaut est définie dans votre cluster, le champ "ingress class name" (nom de la classe d'entrée) peut être omis.
+
+Incluez le fichier `ingress_otel_values.yaml` lorsque vous exécutez la commande `helm upgrade` pour déployer SUSE Observability :
+
+[,text]
+----
+helm upgrade \
+  --install \
+  --namespace "suse-observability" \
+  --values "ingress_otel_values.yaml" \
+  --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+suse-observability \
+suse-observability/suse-observability
+----
+
+[NOTE]
+====
+Cette étape suppose que xref:/setup/install-stackstate/kubernetes_openshift/kubernetes_install.adoc#_generate_baseconfig_values.yaml_and_sizing_values.yaml[Generate `baseConfig_values.yaml` et `sizing_values.yaml`] a déjà été exécuté.
+====
+
+
+== Configuration à l'aide d'outils externes
+
+Pour rendre SUSE Observability accessible en dehors du cluster Kubernetes dans lequel il est installé, il suffit d'acheminer le trafic vers le port `8080` du service `<namespace>-stackstate-k8s-router`. L'interface utilisateur de SUSE Observability est accessible directement sous le chemin racine de ce service (c'est-à-dire `http://<namespace>-stackstate-k8s-router:8080`), tandis que les agents utiliseront le chemin `/receiver` (`http://<namespace>-stackstate-k8s-router:8080/receiver`).
+
+Veillez à mettre à jour le site `baseUrl` dans le fichier de valeurs généré lors de l'installation initiale, car il sera utilisé par SUSE Observability pour générer des instructions d'installation pratiques pour l'agent.
+
+[NOTE]
+====
+Lorsque vous configurez manuellement un serveur Nginx ou un serveur HTTP similaire en tant que proxy inverse, assurez-vous qu'il peut également servir de proxy pour les websockets. Pour Nginx, cela peut être configuré en incluant les directives suivantes dans la directive `location`:
+
+[,text]
+----
+proxy_set_header Upgrade                 $http_upgrade;
+proxy_set_header Connection              "Upgrade";
+----
+
+====
+
+
+[CAUTION]
+====
+SUSE Observability lui-même n'utilise pas de trafic crypté TLS. Le cryptage TLS doit être pris en charge par le contrôleur d'entrée ou les équilibreurs de charge externes.
+====
+
+
+== Agents dans le même cluster
+
+Les agents déployés sur le même cluster que SUSE Observability peuvent bien sûr utiliser l'URL externe sur laquelle SUSE Observability est exposée, mais il est également possible de configurer l'agent pour qu'il se connecte directement à l'instance SUSE Observability via le réseau interne de Kubernetes uniquement. Pour ce faire, remplacez la valeur de `'stackstate.url'` dans la commande `helm install` de l'xref:/k8s-quick-start-guide.adoc[installation Kubernetes de l'agent] par l'URL interne du cluster pour le service de routeur (voir également ci-dessus) : `http://<namespace>-suse-observability-router.<namespace>.svc.cluster.local:8080/receiver/stsAgent` (les sections `<namespace>` doivent être remplacées par l'espace de noms de SUSE Observability).
+
+
+== Transfert du port de service du routeur {stackstate-product-name} 
+
+Par défaut, le diagramme SUSE Observability Helm déploie un pod et un service de routeur. Ce service expose le port `8080`, qui est le seul point d'entrée qui doit être exposé via Ingress.
+Vous pouvez également accéder à SUSE Observability par le biais d'une redirection de port ; dans ce cas, vous devez autoriser localhost comme origine de la requête.
+
+[WARNING]
+====
+* L'autorisation de `localhost` dans `stackstate.allowedOrigins` n'est prévue que pour le développement local ou le débogage lors de l'utilisation du transfert de port.
+* Il *ne* s'agit *pas* d'une installation de production. Supprimez cette origine autorisée lorsque vous exposez {stackstate-product-name} via Ingress.
+====
+
+Pour accéder à l'interface utilisateur sans configurer l'entrée, transférez le port de service du routeur :
+
+[,text]
+----
+kubectl port-forward service/<helm-release-name>-suse-observability-router 8080:8080 --namespace suse-observability
+----
+
+Lorsqu'il accède à {stackstate-product-name} via une redirection de port, le navigateur utilise `http://localhost:8080` comme origine de la requête.
+Pour autoriser les requêtes provenant de cette origine, ajoutez-la à la liste `stackstate.allowedOrigins` dans les valeurs Helm, ou transmettez-la directement à la commande Helm: :
+
+[,bash]
+----
+helm upgrade \
+  --install \
+  --namespace suse-observability \
+  --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+  --set stackstate.allowedOrigins={"http://localhost:8080"} \
+suse-observability \
+suse-observability/suse-observability
+----
+
+
+== Voir aussi
+
+* https://learn.microsoft.com/en-us/azure/aks/ingress-tls?tabs=azure-cli[AKS (learn.microsoft.com)]
+* https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html[Documentation officielle de l'EKS] (n'utilisant pas nginx)
+* https://aws.amazon.com/blogs/opensource/network-load-balancer-nginx-ingress-controller-eks/[Article du blog d'EKS] (utilisant nginx)
