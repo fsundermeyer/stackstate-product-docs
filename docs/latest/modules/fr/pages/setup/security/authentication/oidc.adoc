@@ -1,0 +1,211 @@
+= Open ID Connect (OIDC)
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+== Vue d'ensemble
+
+SUSE Observability peut s'authentifier à l'aide d'un fournisseur d'authentification OIDC. Pour ce faire, vous devez configurer SUSE Observability et le fournisseur OIDC pour qu'ils puissent communiquer entre eux. Les sections suivantes décrivent les configurations respectives.
+
+== Configurer le fournisseur OIDC
+
+Avant de configurer SUSE Observability pour qu'il s'authentifie à l'aide d'OIDC, vous devez créer un client pour SUSE Observability sur votre fournisseur OIDC.
+
+=== Rancher
+
+[NOTE]
+Cela ne fonctionne qu'avec Rancher 2.12 ou une version ultérieure.  Vous devez https://documentation.suse.com/cloudnative/rancher-manager/latest/en/rancher-admin/users/authn-and-authz/configure-oidc-provider.html[configurer Rancher en tant que fournisseur OIDC].
+
+Créer une ressource OIDCClient dans le cluster local de Rancher :
+[,yaml]
+----
+apiVersion: management.cattle.io/v3
+kind: OIDCClient
+metadata:
+  name: oidc-observability
+spec:
+  tokenExpirationSeconds: 600
+  refreshTokenExpirationSeconds: 3600
+  redirectURIs:
+    - "https://<observability-base-url>/loginCallback?client_name=StsOidcClient"
+----
+
+Rancher rendra l'ID et le secret du client disponibles dans son champ d'état :
+[,yaml]
+----
+apiVersion: management.cattle.io/v3
+kind: OIDCClient
+metadata:
+  name: oidc-observability
+spec:
+  tokenExpirationSeconds: 600
+  refreshTokenExpirationSeconds: 3600
+  redirectURIs:
+    - "https://<observability-base-url>/loginCallback?client_name=StsOidcClient"
+status:
+  clientID: <oidc-client-id>
+  clientSecrets:
+    client-secret-1:
+      createdAt: "xxx"
+      lastFiveCharacters: xxx
+----
+
+Et vous pouvez obtenir la valeur secrète avec
+[,bash]
+----
+kubectl get secret <oidc-client-id> -n cattle-oidc-client-secrets -o jsonpath="{.data.client-secret-1}" | base64 -d
+----
+
+
+=== Autres fournisseurs de l'OIDC
+
+Utilisez les paramètres suivants pour le client (si le fournisseur OIDC en a besoin) :
+
+* Utiliser le flux d'autorisation de l'OIDC, souvent appelé flux de code d'autorisation. SUSE Observability ne prend pas en charge les flux Implicit grant et hybrid, il n'est donc pas nécessaire d'activer la prise en charge de ces flux.
+* Définissez l'*URI de redirection* à l'URL de base de SUSE Observability suffixée par `/loginCallback?client_name=StsOidcClient`. Par exemple `https://stackstate.acme.com/loginCallback?client_name=StsOidcClient`. Pour certains fournisseurs OIDC, tels que Google et Azure Entra ID, l'URI de redirection doit correspondre exactement, y compris les paramètres de la requête. Dans ce cas, vous devez configurer l'URI comme suit : `https://stackstate.acme.com/loginCallback?client_name=StsOidcClient`.
+* Donnez à SUSE Observability l'accès au moins aux scopes `openid` et `email` ou à l'équivalent de ces scopes pour votre fournisseur OIDC. Selon le fournisseur, d'autres champs d'application peuvent être nécessaires. Si un site `profile` distinct existe, incluez-le également.
+* SUSE Observability a besoin d'un accès hors ligne à l'OIDC. Pour certains fournisseurs d'identité, cela nécessite une portée supplémentaire, généralement appelée `offline_access`.
+
+Le résultat de cette configuration devrait produire un *identifiant de client* et un *secret*. Copiez-les et conservez-les pour configurer SUSE Observability. Notez également l'*URI de découverte du* fournisseur. En général, cette information se trouve dans le même écran ou dans la documentation.
+
+== Configurer SUSE Observability pour OIDC
+
+=== Rancher
+
+[NOTE]
+Cela ne fonctionne qu'avec Rancher 2.12 ou une version ultérieure.  Vous devez https://documentation.suse.com/cloudnative/rancher-manager/latest/en/rancher-admin/users/authn-and-authz/configure-oidc-provider.html[configurer Rancher en tant que fournisseur OIDC].
+
+Pour configurer Rancher en tant que fournisseur OIDC pour SUSE Observability, vous devez ajouter les détails OIDC aux valeurs d'authentification :
+[,yaml]
+----
+stackstate:
+  authentication:
+    rancher:
+      clientId: "<oidc-client-id>"
+      secret: "<oidc-secret>"
+      baseUrl: "<rancher-url>"
+----
+Vous pouvez remplacer et étendre la configuration OIDC pour Rancher avec les champs suivants :
+
+* **discoveryUri** - URI que vous pouvez utiliser pour découvrir le fournisseur OIDC. Normalement, il est également documenté ou renvoyé lors de la création du client dans le fournisseur OIDC.
+* **redirectUri** - Facultatif (pas dans l'exemple) : L'URI où le point final de rappel de connexion de SUSE Observability est accessible. Remplie par défaut à l'aide de `stackstate.baseUrl`, mais peut être remplacée par d'autres. Il doit s'agir d'une URL complète qui pointe vers le chemin d'accès `/loginCallback`.
+* **customParameters** - Carte facultative de paires clé/valeur que vous envoyez au fournisseur OIDC en tant que paramètres de demande personnalisés. Certains fournisseurs de l'OIDC exigent des paramètres de demande supplémentaires qui ne sont pas envoyés par défaut.
+
+Si vous devez désactiver la vérification TLS en raison d'une configuration n'utilisant pas de certificats SSL vérifiables, vous pouvez désactiver les vérifications SSL avec la configuration de l'application (ne pas utiliser en production) :
+
+Pour l'installation **non HA :** 
+[,yaml]
+----
+stackstate:
+  components:
+    server:
+      extraEnv:
+        open:
+          CONFIG_FORCE_stackstate_misc_sslCertificateChecking: false
+----
+Pour la configuration **HA (haute disponibilité)**:
+[,yaml]
+----
+stackstate:
+  components:
+    api:
+      extraEnv:
+        open:
+          CONFIG_FORCE_stackstate_misc_sslCertificateChecking: false
+----
+
+Dans les déploiements HA, le composant api gère la configuration différemment. Utilisez les éléments suivants :===== Kubernetes
+
+Pour configurer SUSE Observability afin d'utiliser un fournisseur d'authentification OIDC sur Kubernetes, vous devez ajouter les détails OIDC et le mappage des rôles d'utilisateur au fichier `authentication.yaml`. Par exemple :
+
+[,yaml]
+----
+stackstate:
+  authentication:
+    oidc:
+      clientId: "<client-id-from-oidc-provider>"
+      secret: "<secret-from-oidc-provider>"
+      discoveryUri: "https://oidc.acme.com/.well-known/openid-configuration"
+      jwsAlgorithm: RS256
+      scope: ["openid", "email"]
+      jwtClaims:
+        usernameField: email
+        displayNameField: name
+        groupsField: groups
+      customParameters:
+        access_type: offline
+
+    # map the groups from OIDC provider
+    # to the 4 standard roles in SUSE Observability (guest, powerUser, k8sTroubleshooter and admin)
+    roles:
+      guest: ["guest-group-in-oidc-provider"]
+      powerUser: ["powerUser-group-in-oidc-provider"]
+      admin: ["admin-group-in-oidc-provider"]
+      k8sTroubleshooter: ["troubleshooter-group-in-oidc-provider"]
+----
+
+Suivez les étapes ci-dessous pour configurer SUSE Observability afin qu'il s'authentifie à l'aide d'OIDC :
+
+. Dans `authentication.yaml` - ajoutez les détails du fournisseur d'authentification OIDC (voir l'exemple ci-dessus) :
+ ** *clientId* - L'ID du xref:/setup/security/authentication/oidc.adoc#_configure_the_oidc_provider[client OIDC que vous avez créé pour SUSE Observability].
+ ** *secret* - Le secret du xref:/setup/security/authentication/oidc.adoc#_configure_the_oidc_provider[client OIDC que vous avez créé pour SUSE Observability].
+ ** *discoveryUri* - URI qui peut être utilisé pour découvrir le fournisseur OIDC. Normalement aussi documenté ou renvoyé lors de la création du client dans le fournisseur OIDC.
+ ** *jwsAlgorithm* - La valeur par défaut pour OIDC est `RS256`. Si votre fournisseur OIDC en utilise un autre, vous pouvez le définir ici.
+ ** *champ d'application* - Doit correspondre au champ d'application fourni dans la configuration du fournisseur OIDC ou être un sous-ensemble de celui-ci. SUSE Observability l'utilise pour demander l'accès à ces parties d'un profil d'utilisateur dans le fournisseur OIDC.
+ ** *redirectUri* - Facultatif (pas dans l'exemple) : L'URI où le point final de rappel de connexion de SUSE Observability est accessible. Remplie par défaut à l'aide de `stackstate.baseUrl`, mais peut être remplacée par d'autres. Il doit s'agir d'une URL complète qui pointe vers le chemin d'accès `/loginCallback`.
+ ** *customParameters* - Carte facultative de paires clé/valeur qui sont envoyées au fournisseur OIDC en tant que paramètres de demande personnalisés. Certains fournisseurs de l'OIDC exigent des paramètres de demande supplémentaires qui ne sont pas envoyés par défaut.
+ ** *jwtClaims* -
+  *** *usernameField* - Le champ du profil d'utilisateur OIDC qui doit être utilisé comme nom d'utilisateur. Par défaut, il s'agit de `preferred_username`, mais de nombreux fournisseurs omettent ce champ. Une bonne alternative est `email`.
+  *** *displayNameField* - Le champ du profil d'utilisateur OIDC qui doit être utilisé comme nom d'affichage. Par défaut, il s'agit de l'adresse `name`.
+  *** *groupsField* - Champ à partir duquel SUSE Observability lira le rôle/groupe d'un utilisateur.
+. Dans `authentication.yaml` - mappez les rôles d'utilisateur de OIDC aux sujets SUSE Observability corrects en utilisant les paramètres `roles.guest`, `roles.powerUser`, `roles.admin` ou `roles.platformAdmin` (voir l'exemple ci-dessus). Pour plus de détails, voir les xref:/setup/security/rbac/rbac_permissions.adoc#_predefined_roles[rôles par défaut de SUSE Observability]. D'autres rôles SUSE Observability peuvent également être créés, voir la xref:/setup/security/rbac/README.adoc[documentation RBAC].
+. Stockez le fichier `authentication.yaml` avec le fichier `values.yaml` des instructions d'installation de SUSE Observability.
+. Exécutez une mise à jour de Helm pour appliquer les changements :
++
+[,text]
+----
+ helm upgrade \
+   --install \
+   --namespace suse-observability \
+   --values values.yaml \
+   --values authentication.yaml \
+ suse-observability \
+ suse-observability/suse-observability
+----
+
+[NOTE]
+====
+*Remarque :*
+
+* La première exécution de la commande helm upgrade entraînera le redémarrage des pods, ce qui peut provoquer une brève interruption de la disponibilité.
+* Inclure `authentication.yaml` dans chaque course `helm upgrade`.
+* La configuration d'authentification est stockée en tant que secret Kubernetes.
+====
+
+
+== Guides d'installation
+
+* xref:/setup/security/authentication/oidc/microsoft-entra-id.adoc[Microsoft Entra ID]
+
+== Utilisation d'un secret externe
+
+Lorsque les secrets oidc doivent provenir d'un secret externe, suivez xref:/setup/security/external-secrets.adoc#_getting_authentication_data_from_an_external_secret[ces étapes] mais complétez les données suivantes :
+
+[,yaml]
+----
+kind: Secret
+metadata:
+   name: "<custom-secret-name>"
+type: Opaque
+data:
+  oidc_client_id: <base64 of client id>
+  oidc_secret: <base64 of secret>
+----
+
+== Voir aussi
+
+* xref:/setup/security/authentication/troubleshooting.adoc[Dépannage de l'authentification et de l'autorisation]
+* xref:/setup/security/authentication/authentication_options.adoc[Options d'authentification]
+* xref:/setup/security/rbac/rbac_permissions.adoc#_predefined_roles[Permissions pour les rôles prédéfinis de SUSE Observability]
+* xref:/setup/security/rbac/rbac_roles.adoc[Créer des rôles RBAC]
+* xref:/setup/security/external-secrets.adoc#_getting_authentication_data_from_an_external_secret[Secrets externes]
