@@ -1,0 +1,14 @@
+= Changements
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Voir la différence avec le dernier déploiement
+
+Lorsque des problèmes surviennent après avoir appliqué des modifications à vos configurations Kubernetes, jetez un coup d'œil à la dernière modification de déploiement.
+
+image::k8s/k8s-show-diff.png[]
+
+La comparaison de la configuration actuelle avec la précédente peut vous aider à identifier les changements spécifiques susceptibles d'avoir causé le problème.
+
+image::k8s/k8s-show-diff-opened.png[]

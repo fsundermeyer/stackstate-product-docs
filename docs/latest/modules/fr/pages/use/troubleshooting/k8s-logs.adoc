@@ -1,0 +1,29 @@
+= Journaux
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+Kubernetes conserve des journaux complets de l'activité des clusters et de la sortie des applications. La journalisation fournit des informations précieuses sur les performances des conteneurs, des nœuds et de Kubernetes lui-même. En enregistrant méticuleusement tout, des Pods aux ReplicaSets, il vous permet de remonter à la source des problèmes.
+
+== Accès aux journaux de pods
+
+Les erreurs et les avertissements contenus dans les journaux sont des indicateurs de problèmes potentiels dans votre application, vos conteneurs ou le pod lui-même. Pour consulter les journaux lorsque vous êtes sur l'écran du pod, cliquez sur le bouton *Afficher les journaux.* 
+
+image::k8s/k8s-logs.png[]
+
+== Utilisation des journaux de pods
+
+Vous pouvez utiliser la fonction de recherche pour trouver des erreurs ou des avertissements spécifiques dans les journaux. Les journaux peuvent être filtrés par un conteneur. Vous pouvez sélectionner un intervalle de temps souhaité pour l'affichage des journaux et un intervalle de rafraîchissement pour la fréquence à laquelle vous souhaitez que les journaux soient mis à jour.
+
+L'histogramme des journaux visualise le nombre de lignes de journaux dans un intervalle de temps sélectionné et vous permet de zoomer sur un intervalle particulier en cliquant et en faisant glisser le curseur.
+
+Ces options permettent d'afficher ou de masquer des informations supplémentaires pour chaque ligne de journal :
+
+* *Afficher l'heure* pour afficher les horodatages
+* *Afficher les conteneurs* pour afficher le nom du conteneur auquel appartient la ligne de journal
+* *Wrap lines* pour activer le wrapping pour les lignes longues
+* Le *plus récent d'abord/le plus ancien d'abord* pour changer l'ordre de tri du journal
+
+image::k8s/k8s-logs-opened.png[]
