@@ -1,0 +1,648 @@
+= Guides de démarrage rapide de SUSE Observability
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+:doctype: book
+
+== Vue d'ensemble
+
+Une fois que votre instance SaaS SUSE Observability a été mise en place et configurée, vous recevrez un e-mail de SUSE Observability contenant les détails de connexion requis. Ce guide de démarrage rapide vous aidera à démarrer et à intégrer vos propres données dans votre instance SaaS SUSE Observability.
+
+Pour intégrer votre ou vos grappes à SUSE Observability, vous pouvez suivre l'un de ces guides pour votre environnement approprié.
+
+* <<_amazon_eks,Amazon EKS>>
+* <<_azure_aks,Azure AKS>>
+* <<_google_gke,Google GKE>>
+* <<_kubernetes,Kubernetes>>
+* <<_kops,KOPS>>
+* <<_openshift,OpenShift>>
+* <<_self_hosted,Auto-hébergé>>
+
+
+== Kubernetes
+
+Configurez une intégration Kubernetes pour collecter des données sur la topologie, les événements, les journaux, les changements et les mesures à partir d'un cluster Kubernetes et mettez-les à disposition dans SUSE Observability.
+
+=== Versions prises en charge
+
+|===
+| Version de Kubernetes prise en charge
+
+| Kubernetes 1.32
+| Kubernetes 1.31
+| Kubernetes 1.30
+| Kubernetes 1.29
+| Kubernetes 1.28
+| Kubernetes 1.27
+| Kubernetes 1.26
+| Kubernetes 1.25
+| Kubernetes 1.24
+| Kubernetes 1.23
+| Kubernetes 1.22
+| Kubernetes 1.21
+|===
+
+=== Durée d'exécution supportée
+
+|===
+| Durée d'exécution supportée
+
+| ContainerD
+| CRI-O
+|===
+
+=== Conditions préalables pour Kubernetes
+
+Pour configurer une intégration SUSE Observability Kubernetes, vous devez disposer des éléments suivants :
+
+* Un cluster Kubernetes opérationnel.
+* Helm version 3.13.1 ou supérieure.
+* Un utilisateur ayant l'autorisation de `create privileged pods`, `ClusterRoles` et `ClusterRoleBindings`:
+ ** ClusterRole et ClusterRoleBinding sont nécessaires pour accorder aux agents SUSE Observability des autorisations d'accès à l'API Kubernetes.
+ ** Les agents SUSE Observability doivent s'exécuter dans un pod privilégié pour pouvoir recueillir des informations sur les connexions réseau et les hôtes.
+
+=== Mise en place d'une intégration Kubernetes
+
+[CAUTION]
+====
+Avant de commencer, vérifiez les <<_prerequisites_for_kubernetes,conditions préalables pour Kubernetes>>.
+====
+
+
+Pour obtenir des données d'un cluster Kubernetes dans SUSE Observability, suivez les étapes décrites ci-dessous :
+
+. Ajouter le dépôt SUSE Observability helm au client helm local :
++
+[,buildoutcfg]
+----
+ helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+ helm repo update
+----
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal en cliquant en haut à gauche de l'écran et allez à `StackPacks` > `Kubernetes`.
+. Installez une nouvelle instance de Kubernetes StackPack :
+ ** Spécifier un *nom de cluster Kubernetes*
+  *** Ce nom sera utilisé pour identifier le cluster dans SUSE Observability.
+ ** Cliquez sur *installer*.
+. Déployez SUSE Observability Agent, Cluster Agent, Checks Agent et kube-state-metrics sur votre cluster à l'aide de la commande helm fournie dans l'interface utilisateur de SUSE Observability après avoir installé le StackPack.
+ ** Une fois les agents déployés, ils commenceront à collecter des données et les transmettront à SUSE Observability.
+
+[CAUTION]
+====
+En cas d'exécution dans un environnement air-gapped auto-hébergé, préparez d'abord l'installation de l'agent à l'aide des xref:/k8s-suse-rancher-prime-agent-air-gapped.adoc[instructions air-gapped].
+====
+
+
+== OpenShift
+
+Configurez une intégration OpenShift pour collecter des données de topologie, d'événements, de journaux, de changements et de métriques à partir d'un cluster OpenShift et mettez-les à disposition dans SUSE Observability.
+
+=== Versions prises en charge
+
+|===
+| Version d'OpenShift | Version de Kubernetes prise en charge | Fin du support d'OpenShift
+
+| OpenShift 4.17
+| Kubernetes 1.30
+| 1er avril 2026
+
+| OpenShift 4.16
+| Kubernetes 1.29
+| 27 décembre 2025
+
+| OpenShift 4.15
+| Kubernetes 1.28
+| 27 août 2025
+
+| OpenShift 4.14
+| Kubernetes 1.27
+| 1er mai 2025
+
+| OpenShift 4.13
+| Kubernetes 1.26
+| 17 novembre 2024
+
+| OpenShift 4.12
+| Kubernetes 1.25
+| 17 juillet 2024
+
+| OpenShift 4.11
+| Kubernetes 1.24
+| 10 février 2024
+
+| OpenShift 4.10
+| Kubernetes 1.23
+| 10 septembre 2023
+
+| OpenShift 4.9
+| Kubernetes 1.22
+| 18 avril 2023
+|===
+
+=== Durée d'exécution supportée
+
+|===
+| Durée d'exécution supportée
+
+| ContainerD
+| CRI-O
+|===
+
+=== Prérequis pour OpenShift
+
+Pour configurer une intégration SUSE Observability OpenShift, vous devez disposer des éléments suivants :
+
+* Un cluster OpenShift opérationnel.
+* Helm version 3.13.1 ou supérieure.
+* Un utilisateur ayant l'autorisation de `create privileged pods`, `ClusterRoles` et `ClusterRoleBindings`:
+ ** ClusterRole et ClusterRoleBinding sont nécessaires pour accorder aux agents SUSE Observability des autorisations d'accès à l'API Kubernetes.
+ ** Les agents SUSE Observability doivent s'exécuter dans un pod privilégié pour pouvoir recueillir des informations sur les connexions réseau et les hôtes.
+
+=== Mettre en place une intégration OpenShift
+
+[CAUTION]
+====
+Avant de commencer, vérifiez les <<_prerequisites_for_openshift,conditions préalables pour Kubernetes>>.
+====
+
+
+Pour obtenir des données d'un cluster Kubernetes dans SUSE Observability, suivez les étapes décrites ci-dessous :
+
+. Ajouter le dépôt SUSE Observability helm au client helm local :
++
+[,buildoutcfg]
+----
+ helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+ helm repo update
+----
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal en cliquant en haut à gauche de l'écran et allez à `StackPacks` > `Integrations` > `Kubernetes`.
+. Installez une nouvelle instance de Kubernetes StackPack :
+ ** Spécifier un *nom de cluster Kubernetes*
+  *** Ce nom sera utilisé pour identifier le cluster dans SUSE Observability.
+ ** Cliquez sur *installer*.
+. Déployez SUSE Observability Agent, Cluster Agent, Checks Agent et kube-state-metrics sur votre cluster à l'aide de la commande helm fournie dans l'interface utilisateur de SUSE Observability après avoir installé le StackPack.
+ ** Une fois les agents déployés, ils commenceront à collecter des données et les transmettront à SUSE Observability.
+
+
+== Amazon EKS
+
+Configurez une intégration Amazon EKS pour collecter des données de topologie, d'événements, de journaux, de changements et de métriques à partir d'un cluster Amazon EKS et mettez-les à disposition dans SUSE Observability.
+
+=== Versions prises en charge
+
+|===
+| Version de Kubernetes | Sortie de l'EKS sur Amazon | Fin du support de l'EKS d'Amazon | Amazon EKS Fin de l'assistance étendue
+
+| 1.32
+| 23 janvier 2025
+| 23 mars 2026
+| 23 mars 2027
+
+| 1.31
+| 26 septembre 2024
+| 26 novembre 2025
+| 26 novembre 2026
+
+| 1.30
+| 23 mai 2024
+| 23 juillet 2025
+| 23 juillet 2026
+
+| 1.29
+| 23 janvier 2024
+| 23 mars 2025
+| 23 mars 2026
+
+| 1.28
+| 26 septembre 2023
+| 01 novembre 2024
+| 26 novembre 2025
+
+| 1.27
+| 24 mai 2023
+| juillet 2024
+| 24 juillet 2025
+
+| 1.26
+| 11 avril 2023
+| juin 2024
+| 11 juin 2025
+
+| 1.25
+| 21 février 2023
+| mai 2024
+| 1er mai 2025
+
+| 1.24
+| 15 novembre 2022
+| janvier 2024
+| 31 janvier 2025
+
+| 1.23
+| 11 août 2022
+| 11 octobre 2023
+| 11 octobre 2024
+
+| 1.22
+| 4 avril 2022
+| 4 juin 2023
+| 1er septembre 2024
+
+| 1.21
+| 19 juillet 2021
+| 15 février 2023
+| 15 juillet 2024
+
+| 1.20
+| 18 mai 2021
+| 1er novembre 2022
+| N/A
+
+| 1.19
+| 16 février 2021
+| 1er août 2022
+| N/A
+
+| 1.18
+| 13 octobre 2020
+| 15 août 2022
+| N/A
+|===
+
+=== Durée d'exécution supportée
+
+|===
+| Durée d'exécution supportée
+
+| ContainerD
+| CRI-O
+|===
+
+=== Conditions préalables pour Amazon EKS
+
+Pour configurer une intégration SUSE Observability Amazon EKS, vous devez disposer des éléments suivants :
+
+* Un cluster Amazon EKS opérationnel.
+* Helm version 3.13.1 ou supérieure.
+* Un utilisateur ayant l'autorisation de `create privileged pods`, `ClusterRoles` et `ClusterRoleBindings`:
+ ** ClusterRole et ClusterRoleBinding sont nécessaires pour accorder aux agents SUSE Observability des autorisations d'accès à l'API Kubernetes.
+ ** Les agents SUSE Observability doivent s'exécuter dans un pod privilégié pour pouvoir recueillir des informations sur les connexions réseau et les hôtes.
+
+=== Mise en place d'une intégration Amazon EKS
+
+[CAUTION]
+====
+Avant de commencer, vérifiez les <<_prerequisites_for_amazon_eks,conditions préalables pour Kubernetes>>.
+====
+
+
+Pour obtenir des données d'un cluster Kubernetes dans SUSE Observability, suivez les étapes décrites ci-dessous :
+
+. Ajouter le dépôt SUSE Observability helm au client helm local :
++
+[,buildoutcfg]
+----
+ helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+ helm repo update
+----
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal en cliquant en haut à gauche de l'écran et allez à `StackPacks` > `Integrations` > `Kubernetes`.
+. Installez une nouvelle instance de Kubernetes StackPack :
+ ** Spécifier un *nom de cluster Kubernetes*
+  *** Ce nom sera utilisé pour identifier le cluster dans SUSE Observability.
+ ** Cliquez sur *installer*.
+. Déployez SUSE Observability Agent, Cluster Agent, Checks Agent et kube-state-metrics sur votre cluster à l'aide de la commande helm fournie dans l'interface utilisateur de SUSE Observability après avoir installé le StackPack.
+ ** Une fois les agents déployés, ils commenceront à collecter des données et les transmettront à SUSE Observability.
+
+
+== Google GKE
+
+Configurez une intégration Google GKE pour collecter des données sur la topologie, les événements, les journaux, les changements et les mesures à partir d'un cluster Google GKE et mettez-les à disposition dans SUSE Observability.
+
+=== Versions prises en charge
+
+|===
+| Kubernetes Version | Publication de Google GKE | Fin du support de Google GKE | Fin du support étendu de Google GKE
+
+| 1.32
+| Février 2025
+| Q2, 2026
+| Q1, 2027
+
+| 1.31
+| 22 octobre 2024
+| 22 décembre 2025
+| 22 octobre 2026
+
+| 1.30
+| 30 juillet 2024
+| 30 septembre 2025
+| 30 juillet 2026
+
+| 1.29
+| 25 janvier 2024
+| 21 mars 2025
+| 25 janvier 2026
+
+| 1.28
+| 4 décembre 2023
+| 4 février 2025
+| 4 décembre 2025
+
+| 1.27
+| 14 juin 2023
+| 31 août 2024
+| 14 juin 2025
+
+| 1.26
+| 14 avril 2023
+| 30 juin 2024
+| N/A
+|===
+
+=== Durée d'exécution supportée
+
+|===
+| Durée d'exécution supportée
+
+| ContainerD
+| CRI-O
+|===
+
+=== Conditions préalables pour Google GKE
+
+Pour configurer une intégration SUSE Observability Google GKE, vous devez disposer des éléments suivants :
+
+* Un cluster Google GKE opérationnel.
+* Helm version 3.13.1 ou supérieure.
+* Un utilisateur ayant l'autorisation de `create privileged pods`, `ClusterRoles` et `ClusterRoleBindings`:
+ ** ClusterRole et ClusterRoleBinding sont nécessaires pour accorder aux agents SUSE Observability des autorisations d'accès à l'API Kubernetes.
+ ** Les agents SUSE Observability doivent s'exécuter dans un pod privilégié pour pouvoir recueillir des informations sur les connexions réseau et les hôtes.
+
+=== Mise en place d'une intégration Google GKE
+
+[CAUTION]
+====
+Avant de commencer, vérifiez les <<_prerequisites_for_google_gke,conditions préalables pour Kubernetes>>.
+====
+
+
+Pour obtenir des données d'un cluster Kubernetes dans SUSE Observability, suivez les étapes décrites ci-dessous :
+
+. Ajouter le dépôt SUSE Observability helm au client helm local :
++
+[,buildoutcfg]
+----
+ helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+ helm repo update
+----
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal en cliquant en haut à gauche de l'écran et allez à `StackPacks` > `Integrations` > `Kubernetes`.
+. Installez une nouvelle instance de Kubernetes StackPack :
+ ** Spécifier un *nom de cluster Kubernetes*
+  *** Ce nom sera utilisé pour identifier le cluster dans SUSE Observability.
+ ** Cliquez sur *installer*.
+. Déployez SUSE Observability Agent, Cluster Agent, Checks Agent et kube-state-metrics sur votre cluster à l'aide de la commande helm fournie dans l'interface utilisateur de SUSE Observability après avoir installé le StackPack.
+ ** Une fois les agents déployés, ils commenceront à collecter des données et les transmettront à SUSE Observability.
+
+
+== Azure AKS
+
+Configurez une intégration Azure AKS pour collecter des données de topologie, d'événements, de journaux, de changements et de métriques à partir d'un cluster Azure AKS et mettez-les à disposition dans SUSE Observability.
+
+=== Versions prises en charge
+
+|===
+| Kubernetes Version | AKS GA | Fin de vie de l'Azure AKS | Soutien à la plate-forme
+
+| 1.32
+| juin 2024
+| mars 2026
+| Jusqu'à la version 1.36 de l'AG
+
+| 1.31
+| novembre 2024
+| Novembre 2025
+| Jusqu'à l'AG 1.35
+
+| 1.30
+| juin 2024
+| Juillet 2025
+| Jusqu'à l'AG 1.34
+
+| 1.29
+| mars 2024
+| Janvier 2025
+| Jusqu'à l'AG 1.33
+
+| 1.28
+| novembre 2023
+| novembre 2024
+| Jusqu'à la version 1.32 GA
+
+| 1.27
+| juillet 2023
+| juillet 2024
+| Juillet 2025
+|===
+
+=== Durée d'exécution supportée
+
+|===
+| Durée d'exécution supportée
+
+| ContainerD
+| CRI-O
+|===
+
+=== Conditions préalables pour Azure AKS
+
+Pour configurer une intégration SUSE Observability Azure AKS, vous devez disposer des éléments suivants :
+
+* Un cluster Azure AKS opérationnel.
+* Helm version 3.13.1 ou supérieure.
+* Un utilisateur ayant l'autorisation de `create privileged pods`, `ClusterRoles` et `ClusterRoleBindings`:
+ ** ClusterRole et ClusterRoleBinding sont nécessaires pour accorder aux agents SUSE Observability des autorisations d'accès à l'API Kubernetes.
+ ** Les agents SUSE Observability doivent s'exécuter dans un pod privilégié pour pouvoir recueillir des informations sur les connexions réseau et les hôtes.
+
+=== Mise en place d'une intégration Azure AKS
+
+[CAUTION]
+====
+Avant de commencer, vérifiez les <<_prerequisites_for_azure_aks,conditions préalables pour Kubernetes>>.
+====
+
+
+Pour obtenir des données d'un cluster Kubernetes dans SUSE Observability, suivez les étapes décrites ci-dessous :
+
+. Ajouter le dépôt SUSE Observability helm au client helm local :
++
+[,buildoutcfg]
+----
+ helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+ helm repo update
+----
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal en cliquant en haut à gauche de l'écran et allez à `StackPacks` > `Integrations` > `Kubernetes`.
+. Installez une nouvelle instance de Kubernetes StackPack :
+ ** Spécifier un *nom de cluster Kubernetes*
+  *** Ce nom sera utilisé pour identifier le cluster dans SUSE Observability.
+ ** Cliquez sur *installer*.
+. Déployez SUSE Observability Agent, Cluster Agent, Checks Agent et kube-state-metrics sur votre cluster à l'aide de la commande helm fournie dans l'interface utilisateur de SUSE Observability après avoir installé le StackPack.
+ ** Une fois les agents déployés, ils commenceront à collecter des données et les transmettront à SUSE Observability.
+
+
+== KOPS
+
+Configurez une intégration KOPS pour collecter des données de topologie, d'événements, de journaux, de changements et de métriques à partir d'un cluster KOPS et mettez-les à disposition dans SUSE Observability.
+
+=== Versions prises en charge
+
+|===
+| Version de Kubernetes prise en charge
+
+| Kubernetes 1.32
+| Kubernetes 1.31
+| Kubernetes 1.30
+| Kubernetes 1.29
+| Kubernetes 1.28
+| Kubernetes 1.27
+| Kubernetes 1.26
+| Kubernetes 1.25
+| Kubernetes 1.24
+| Kubernetes 1.23
+| Kubernetes 1.22
+| Kubernetes 1.21
+| Kubernetes 1.20
+| Kubernetes 1.19
+| Kubernetes 1.18
+| Kubernetes 1.17
+| Kubernetes 1.16
+|===
+
+=== Durée d'exécution supportée
+
+|===
+| Durée d'exécution supportée
+
+| ContainerD
+| CRI-O
+|===
+
+=== Prérequis pour KOPS
+
+Pour configurer une intégration SUSE Observability KOPS, vous devez disposer des éléments suivants :
+
+* Un cluster KOPS opérationnel.
+* Helm version 3.13.1 ou supérieure.
+* Un utilisateur ayant l'autorisation de `create privileged pods`, `ClusterRoles` et `ClusterRoleBindings`:
+ ** ClusterRole et ClusterRoleBinding sont nécessaires pour accorder aux agents SUSE Observability des autorisations d'accès à l'API Kubernetes.
+ ** Les agents SUSE Observability doivent s'exécuter dans un pod privilégié pour pouvoir recueillir des informations sur les connexions réseau et les hôtes.
+
+=== Mettre en place une intégration KOPS
+
+[CAUTION]
+====
+Avant de commencer, vérifiez les <<_prerequisites_for_kops,conditions préalables pour Kubernetes>>.
+====
+
+
+Pour obtenir des données d'un cluster Kubernetes dans SUSE Observability, suivez les étapes décrites ci-dessous :
+
+. Ajouter le dépôt SUSE Observability helm au client helm local :
++
+[,buildoutcfg]
+----
+ helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+ helm repo update
+----
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal en cliquant en haut à gauche de l'écran et allez à `StackPacks` > `Integrations` > `Kubernetes`.
+. Installez une nouvelle instance de Kubernetes StackPack :
+ ** Spécifier un *nom de cluster Kubernetes*
+  *** Ce nom sera utilisé pour identifier le cluster dans SUSE Observability.
+ ** Cliquez sur *installer*.
+. Déployez SUSE Observability Agent, Cluster Agent, Checks Agent et kube-state-metrics sur votre cluster à l'aide de la commande helm fournie dans l'interface utilisateur de SUSE Observability après avoir installé le StackPack.
+ ** Une fois les agents déployés, ils commenceront à collecter des données et les transmettront à SUSE Observability.
+
+
+== Auto-hébergé
+
+Configurez une intégration auto-hébergée pour collecter des données de topologie, d'événements, de journaux, de changements et de métriques à partir d'un cluster auto-hébergé et mettez-les à disposition dans SUSE Observability.
+
+=== Versions prises en charge
+
+|===
+| Version de Kubernetes prise en charge
+
+| Kubernetes 1.32
+| Kubernetes 1.31
+| Kubernetes 1.30
+| Kubernetes 1.29
+| Kubernetes 1.28
+| Kubernetes 1.27
+| Kubernetes 1.26
+| Kubernetes 1.25
+| Kubernetes 1.24
+| Kubernetes 1.23
+| Kubernetes 1.22
+| Kubernetes 1.21
+| Kubernetes 1.20
+| Kubernetes 1.19
+| Kubernetes 1.18
+| Kubernetes 1.17
+| Kubernetes 1.16
+|===
+
+=== Durée d'exécution supportée
+
+|===
+| Durée d'exécution supportée
+
+| ContainerD
+| CRI-O
+|===
+
+=== Conditions préalables à l'auto-hébergement
+
+Pour mettre en place une intégration SUSE Observability Self-hosted, vous devez disposer des éléments suivants :
+
+* Un cluster auto-hébergé opérationnel.
+* Helm version 3.13.1 ou supérieure.
+* Un utilisateur ayant l'autorisation de `create privileged pods`, `ClusterRoles` et `ClusterRoleBindings`:
+ ** ClusterRole et ClusterRoleBinding sont nécessaires pour :
+  *** Accorder aux agents SUSE Observability des autorisations d'accès à l'API Kubernetes
+  *** Générer un secret pour le webhook de validation mutante qui fait partie du xref:/setup/agent/k8sTs-agent-request-tracing.adoc[traçage des requêtes.]
+ ** Les agents SUSE Observability doivent s'exécuter dans un pod privilégié pour pouvoir recueillir des informations sur les connexions réseau et les hôtes.
+
+=== Mise en place d'une intégration auto-hébergée
+
+[CAUTION]
+====
+Avant de commencer, vérifiez les <<_prerequisites_for_self_hosted,conditions préalables pour Kubernetes>>.
+====
+
+
+Pour obtenir des données d'un cluster Kubernetes dans SUSE Observability, suivez les étapes décrites ci-dessous :
+
+. Ajouter le dépôt SUSE Observability helm au client helm local :
++
+[,buildoutcfg]
+----
+ helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+ helm repo update
+----
+
+. Dans l'interface utilisateur de SUSE Observability, ouvrez le menu principal en cliquant en haut à gauche de l'écran et allez à `StackPacks` > `Integrations` > `Kubernetes`.
+. Installez une nouvelle instance de Kubernetes StackPack :
+ ** Spécifier un *nom de cluster Kubernetes*
+  *** Ce nom sera utilisé pour identifier le cluster dans SUSE Observability.
+ ** Cliquez sur *installer*.
+. Déployez SUSE Observability Agent, Cluster Agent, Checks Agent et kube-state-metrics sur votre cluster à l'aide de la commande helm fournie dans l'interface utilisateur de SUSE Observability après avoir installé le StackPack.
+ ** Une fois les agents déployés, ils commenceront à collecter des données et les transmettront à SUSE Observability.
+
+
+== Quelle est la prochaine étape ?
+
+* xref:/k8s-getting-started.adoc[Présentation de SUSE Observability]

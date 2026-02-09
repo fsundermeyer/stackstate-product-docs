@@ -1,0 +1,50 @@
+= Moniteurs à seuil dynamique
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+Pour les mesures qui varient considérablement dans le temps et diffèrent d'un service à l'autre, un moniteur à seuil dynamique permet une détection simple et performante des anomalies.  Il utilise les données d'il y a 1, 2 ou 3 semaines, en plus du passé récent, comme contexte pour comparer les données actuelles.
+
+Les données de la "fenêtre de contrôle" sont comparées à celles fournies par le contexte historique à l'aide du test d'Anderson-Darling.  Cette méthode n'impose que très peu d'hypothèses sur la distribution des données.  Le test est particulièrement sensible aux valeurs aberrantes situées aux extrémités supérieure et inférieure de la distribution.  La mesure peut être lisse, irrégulière ou comporter plusieurs "niveaux". Comme les valeurs des données sont comparées directement, sans ajustement de modèle, le moniteur à seuil dynamique est très robuste.
+
+Pour les mesures qui varient régulièrement dans le temps (par exemple, sur une échelle de cinq minutes), le nombre effectif de points de données est inférieur au nombre brut.  Le DT compense ce phénomène, de sorte que le même moniteur peut être utilisé pour un large éventail de mesures sans qu'il soit nécessaire d'en ajuster les paramètres.
+
+Plusieurs paramètres peuvent être définis pour la fonction de surveillance :
+
+* `falsePositiveRate`: dire `!!float 1e-8` - la sensibilité du moniteur aux comportements déviants.  Une valeur plus faible supprime davantage de (faux) positifs, mais peut également entraîner des faux négatifs (anomalies passées inaperçues).
+* `checkWindowMinutes``10` La fenêtre de contrôle doit être équilibrée entre une alerte rapide (petites valeurs) et des anomalies correctement identifiées (valeurs élevées).  Une poignée de points de données fonctionne bien dans la pratique.
+* `historicWindowMinutes`Les heures de travail peuvent être : `120` (2 heures) - entre parenthèses autour de l'heure actuelle, mais aussi une ou plusieurs semaines auparavant - c'est-à-dire d'une heure avant l'heure actuelle jusqu'à une heure après.  Les deux heures précédant la fenêtre de contrôle sont également utilisées.  Le moniteur de seuil dynamique compare la distribution de ces données historiques avec les points de données de la fenêtre de contrôle.
+* `historySizeWeeks`: say `2` - le nombre de semaines dont les données sont extraites pour le contexte historique.  Peut être `1`, `2` ou `3`.
+* `removeTrend`Pour les mesures qui présentent une tendance (par exemple, le nombre de demandes), de sorte que la valeur absolue diffère d'une semaine à l'autre, cette tendance (la valeur moyenne) peut être prise en compte.
+* `includePreviousDay`les données sont généralement disponibles à l'adresse suivante : `false` - pour les mesures qui n'ont pas de tendance hebdomadaire mais seulement quotidienne, cela permet d'utiliser des données plus récentes.
+
+== Exemple de moniteur de seuil dynamique
+
+Un moniteur mis en œuvre à l'aide de la fonction Seuil dynamique se présente comme suit :
+
+----
+  - _type: "Monitor"
+    name: "<name of the monitor>"
+    identifier: "urn:stackpack:<stackpack-name>:monitor:<identifier for the monitor>"
+    status: "DISABLED"
+    description: "<description>"
+    function: {{ get "urn:stackpack:aad-v2:shared:monitor-function:dt" }}
+    arguments:
+      telemetryQuery:
+        query: "<metric to bind to component>"
+        unit: s
+        aliasTemplate: "<name for the metric>"
+      topologyQuery: <topology query for the components to bind to>
+      falsePositiveRate: <floating point number, e.g. !!float 1e-8>
+      checkWindowMinutes: <integer, e.g. 10>
+      historicWindowMinutes: <integer, e.g. 120>
+      historySizeWeeks: <integer: 1, 2 or 3>
+      includePreviousDay: <boolean>
+      removeTrend: <boolean>
+    intervalSeconds: 60
+    remediationHint: "<how to remediate deviating states>"
+----
+
+Le moniteur peut être implémenté à l'aide du guide xref:/setup/custom-integrations/monitors/index.adoc[Ajouter un moniteur de seuil aux composants à l'aide de l'interface de programmation (CLI)]
