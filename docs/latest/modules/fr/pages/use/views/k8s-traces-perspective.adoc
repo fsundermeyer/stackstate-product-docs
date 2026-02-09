@@ -1,0 +1,47 @@
+= La perspective des traces
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+La perspective Traces montre les portées d'un composant et les métriques qui s'y rapportent.
+Vous pouvez ainsi surveiller les performances des applications de votre infrastructure informatique directement dans SUSE Observability.
+
+Cliquez sur n'importe quelle portée dans la liste pour voir les portées descendantes qui lui appartiennent.
+Lorsqu'elle est développée, la ligne temporelle d'une portée indique les dates de début et de fin de chaque descendant.
+Les travées mères d'une même trace sont réduites par défaut, mais peuvent être développées si nécessaire. +
+Les travées sont colorées différemment en fonction de leur nom de service OpenTelemetry.
+Lors de l'inspection d'une trace et de l'affichage de la liste de ses travées, vous pouvez cliquer sur n'importe quelle travée pour obtenir plus de détails.
+
+image::k8s/k8s-traces-perspective.png[La perspective des traces]
+
+== Traces de filtrage
+
+Les filtres de trace vous permettent d'affiner les traces affichées en fonction de l'état de l'étendue (Erreur, Ok ou Non défini), du type de parent (Externe, Interne ou Racine) et de la durée.
+
+En plus de ces filtres, les traces correspondent à la *fenêtre temporelle* sélectionnée dans le contrôle de la chronologie au bas de l'interface utilisateur de SUSE Observability.
+Ajustez la fenêtre temporelle pour n'afficher que les traces de cette période.
+
+=== Filtrer la durée
+
+Comme le montre la deuxième capture d'écran, il est possible de sélectionner un intervalle de durée pour l'intervalle Duration en brossant l'histogramme.
+Il est possible d'effectuer un zoom arrière en supprimant tous les filtres ou en brossant l'ensemble de la gamme.
+
+== Détails de la portée
+
+Dans SUSE Observability, une xref:/use/views/k8s-view-structure.adoc[vue] vous montre une sous-sélection de votre infrastructure informatique pour une ressource Kubernetes particulière.
+La perspective des traces montre les portées liées à la ressource, ainsi que leurs descendants.
+Comme un span descendant peut provenir d'une autre ressource, il est possible d'y naviguer à partir des détails du span.
+Le lien "travées parentales" permet de développer la vue pour afficher la trace complète.
+
+image::k8s/k8s-traces-perspective-span-details.png[Un descendant détaille l'étendue de la couverture]
+
+Les deux images ci-dessus illustrent ces concepts en montrant un service de caisse dont la principale responsabilité est de créer une commande à partir d'un panier.
+Vous pouvez voir un exemple de trace et de ses travées pour une demande de commande.
+Un span descendant a été mis en évidence et ses détails sont affichés, y compris les liens vers les composants qui lui sont liés.
+
+De même, l'effleurement d'une trace permet de zoomer sur une section temporelle particulière de la trace.
+La sélection peut être réinitialisée en cliquant ultérieurement.
+
+== Voyage dans le temps
+
+Lors de l'utilisation de la perspective Traces, comme pour les autres perspectives, vous pouvez soit être en mode direct, soit xref:/use/stackstate-ui/k8sTs-timeline-time-travel.adoc#_time_travel[voyager dans le temps vers le passé].
