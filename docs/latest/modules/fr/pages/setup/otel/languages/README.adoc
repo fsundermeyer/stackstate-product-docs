@@ -1,0 +1,6 @@
+= LISEZ-MOI
+:description: SUSE Observability
+
+Open telemetry fournit https://opentelemetry.io/docs/languages/[SDK pour de nombreux langages] afin d'(auto-)instrumenter votre application. L'instrumentation permet à votre application d'envoyer des traces, des mesures et des journaux à SUSE Observability. L'auto-instrumentation permet de capturer des traces, des métriques et des journaux pour les bibliothèques et les frameworks les plus répandus, sans autre intervention manuelle que l'intégration du SDK dans votre application.
+
+Open Telemetry dispose de beaucoup plus de SDK que ceux documentés ici. Si votre langue n'est pas documentée ici, vous pouvez utiliser la documentation à l' https://opentelemetry.io/docs/languages/[adresse] en combinaison avec la xref:/setup/otel/languages/sdk-exporter-config.adoc[configuration de l'exportateur SDK] nécessaire pour SUSE Observability.
