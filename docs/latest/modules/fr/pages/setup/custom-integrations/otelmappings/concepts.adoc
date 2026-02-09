@@ -1,0 +1,39 @@
+ifdef::ss-ff-stackpacks2_enabled[]
+= Concepts de mappages de télémétrie ouverts
+:revdate: 2025-12-23
+:page-revdate: {revdate}
+:description: Concepts de mappages de télémétrie ouverts
+
+== Correspondance des composants
+
+Un site `OtelComponentMapping` décrit comment un composant topologique est créé (ou mis à jour) à partir des données OpenTelemetry.
+
+Les exemples typiques de composants créés à partir d'OpenTelemetry sont les suivants (ils font partie du StackPack OpenTelemetry par défaut) :
+
+* Services (dérivés de `service.name` / `service.namespace`)
+* Instances de service (dérivées de `service.instance.id`)
+* Bases de données
+* Hôtes et ressources Kubernetes (nœuds, espaces de noms, pods).
+* Fonctions et tâches dans des environnements sans serveur ou par lots.
+
+== Correspondance des relations
+
+Un site `OtelRelationMapping` décrit comment une relation entre deux composants est créée à partir des données OpenTelemetry.
+
+Les exemples courants de relations sont les suivants (ils font partie du StackPack OpenTelemetry par défaut) :
+
+* Appels de services synchrones (client -> serveur)
+* Flux de messagerie asynchrone (producteur -> consommateur, consommateur -> pair, producteur -> pair)
+* Connexions service-base de données
+* Instance de service fournie par le service
+* Relations d'exécution (le service ou la fonction exécute la tâche, l'hôte ou la fonction)
+
+== Expressions et langage d'expression commun (CEL)
+
+Les cartographies topologiques s'appuient sur le https://cel.dev/[langage d'expression commun (CEL) de] pour sélectionner les données télémétriques, extraire les valeurs et construire les champs des composants et des relations.
+
+Il n'est pas nécessaire d'avoir des connaissances préalables en CEL pour commencer - la plupart des expressions sont de simples vérifications booléennes, des recherches d'attributs ou des constructions de chaînes. Des expressions plus avancées peuvent être introduites progressivement en fonction des besoins.
+
+Pour plus d'informations sur la manière d'exploiter CEL dans les mappages topologiques, voir la page sur les xref:/setup/custom-integrations/otelmappings/schemas-ref.adoc[schémas].
+
+endif::ss-ff-stackpacks2_enabled[]
