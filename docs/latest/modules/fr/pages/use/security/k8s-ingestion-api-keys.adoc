@@ -1,0 +1,29 @@
+= Clés API
+:revdate: 2025-07-22
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+Une clé API est principalement utilisée pour s'authentifier auprès de {stackstate-product-name} afin d'envoyer des données télémétriques à {stackstate-product-name}. Dans une installation de l'agent helm, cela se fait en définissant la variable helm `stackstate.apiKey`.
+
+Vous pouvez obtenir une clé API en suivant le xref:/k8s-suse-rancher-prime.adoc#_installing_the_suse_observability_agent[processus d'installation de StackPack], qui utilise un jeton de service de la plateforme. 
+
+Vous pouvez également obtenir une clé API de la manière suivante à partir de la plateforme :
+
+* **Jeton de service** - Utilisez cette clé pour définir l'étendue des données à ingérer. Un jeton de service est nécessaire lors de l'installation avec le xref:/setup/security/rbac/rbac_rancher.adoc[support RBAC de Rancher]. Il propose également des dates d'expiration. Pour plus d'informations, voir xref:/use/security/k8s-service-tokens.adoc#_authenticate_using_service_tokens_for_data_ingestion[Tokens de service].
+* **Bootstrap Service Token** - Utilisez cette clé API pour configurer un jeton de service pour l'ingestion de données et le RBAC. C'est la méthode préférée pour créer une clé avant l'installation. Pour plus d'informations, voir les xref:/setup/security/authentication/service_tokens.adoc#_set_up_a_bootstrap_service_token[jetons de service Bootstrap].
+* **Clé API du récepteur** - Cette clé est générée lors de l'installation initiale de votre instance {stackstate-product-name} et n'expire jamais. Comme il n'est pas limité, il peut être utilisé pour tous les agents. 
+
+[NOTE]
+====
+Cette méthode sera remplacée à long terme car les données RBAC ne peuvent pas être introduites avec la clé API du destinataire.
+====
+* **Clé API d'ingestion** (obsolète) - Vous pouvez créer des clés API d'ingestion à l'aide de la CLI (STS) de {stackstate-product-name}. Ces clés sont assorties de dates d'expiration et nécessitent une rotation périodique pour rester fonctionnelles.
+
+== Clés API d'ingestion (`Deprecated`)
+
+Les clés API d'ingestion ont été utilisées par des outils externes pour ingérer des données (telles que des mesures, des événements et des traces) dans le cluster SUSE Observability.
+Ces outils comprennent l'agent STS et/ou le collecteur OTel. Le mécanisme d'authentification recommandé est le xref:/use/security/k8s-service-tokens.adoc#_authenticate_using_service_tokens_for_data_ingestion[jeton de service].
+
+== Plus d'informations
+
+* xref:/use/security/k8s-service-tokens.adoc[Jetons de service]

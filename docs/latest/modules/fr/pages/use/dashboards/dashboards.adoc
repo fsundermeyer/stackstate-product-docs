@@ -1,0 +1,55 @@
+= Tableaux de bord
+:revdate: 2025-11-24
+:page-revdate: {revdate}
+:description: Créez et gérez des tableaux de bord pour visualiser les données de vos ressources.
+
+Un tableau de bord permet de visualiser les données de vos ressources et peut être créé et personnalisé en fonction de vos besoins. Un tableau de bord peut inclure des ressources provenant de différentes parties de votre environnement informatique.
+
+== Créer un nouveau tableau de bord
+
+Pour créer votre premier tableau de bord :
+
+. Dans le menu principal, cliquez sur **Tableaux de bord**.
+. Cliquez sur le bouton **Ajouter un nouveau tableau de bord** au milieu de l'écran.
+
+Pour créer un nouveau tableau de bord :
+
+. Dans le menu principal, cliquez sur **Tableaux de bord**.
+. Cliquez sur le bouton **Ajouter un nouveau tableau de bord** en haut à droite.
+. Remplissez le **nom** et la **description**.
+. (Facultatif) Sélectionnez **Public** pour que le tableau de bord soit visible par tous les utilisateurs.
+. (Facultatif) Sélectionnez **Étoilé** pour ajouter le tableau de bord au menu principal afin d'y accéder rapidement.
+. Cliquez sur **Créer un tableau de bord**.
+
+Vous serez dirigé vers le nouveau tableau de bord vide.
+
+image::dashboards/add-new-dashboard-button.png[Créer un nouvel emplacement pour le bouton du tableau de bord]
+
+image::dashboards/add-new-dashboard-drawer.png[Créer un nouveau tiroir de tableau de bord]
+
+
+== Propriétés du tableau de bord
+
+Une fois sur un tableau de bord, vous pouvez en modifier les propriétés en utilisant le menu déroulant situé à côté du bouton *Enregistrer...* dans la barre de navigation supérieure et en sélectionnant **Modifier les propriétés du tableau de bord.** À partir de là, vous pouvez mettre à jour le nom et la description, et préciser si le tableau de bord est public ou protégé par un astérisque.
+
+image::dashboards/edit-dashboard-properties-button.png[Modifier l'emplacement des propriétés du tableau de bord]
+
+image::dashboards/edit-dashboard-properties-drawer.png[Modifier le tiroir des propriétés du tableau de bord]
+
+=== Tableaux de bord publics
+Par défaut, vous êtes le seul à pouvoir consulter vos tableaux de bord. Le fait de rendre un tableau de bord public le rend visible à tous les utilisateurs. Les dashbords publics sont visibles mais non modifiables par d'autres personnes.
+
+=== Tableaux de bord étoilés
+La mise en vedette d'un tableau de bord le fait apparaître plus clairement dans le menu principal et lors de l'ajout de widgets à partir d'autres pages. Démarrez un tableau de bord lorsque vous souhaitez y accéder rapidement.
+
+Les tableaux de bord étoilés sont limités à l'utilisateur. D'autres utilisateurs ont leurs propres tableaux de bord étoilés.
+
+Vous pouvez également marquer un tableau de bord d'un astérisque ou le supprimer lorsque vous voyez l'icône d'un astérisque à côté du nom d'un tableau de bord.
+
+== Paramètres du tableau de bord
+
+Les paramètres du tableau de bord vous permettent de contrôler si la période, l'intervalle de rafraîchissement des données et les variables sont enregistrés dans le tableau de bord ou personnalisables par les utilisateurs. Cliquez sur l'icône en forme de roue dentée en haut à droite d'un tableau de bord pour ouvrir les paramètres du tableau de bord.
+
+Lorsque vous activez l'une des cases à cocher sous la rubrique "Sauvegarde...", par exemple l'intervalle de temps, le tableau de bord sera fixé à l'intervalle de temps choisi une fois qu'il aura été sauvegardé. Lorsqu'elle est désactivée, l'intervalle de temps peut être choisi par l'utilisateur du tableau de bord ; le changement est reflété dans l'URL, de sorte que le lien peut être partagé avec d'autres personnes, qui peuvent alors visualiser le tableau de bord avec le même intervalle de temps.
+
+image::dashboards/edit-dashboard-settings.png[Modifier les paramètres du tableau de bord]
