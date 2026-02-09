@@ -1,0 +1,8 @@
+= La perspective des faits marquants
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+La page des faits saillants présente une vue d'ensemble des informations les plus importantes concernant une ressource Kubernetes spécifique. Vous pouvez voir ici l'état de santé de la ressource, les moniteurs actifs sur la ressource et les journaux, les événements et les mesures clés de la ressource.
+
+image::k8s/k8s-pod-highlights.png[La perspective des faits marquants]
