@@ -1,0 +1,133 @@
+= Configuration des valeurs d'affinité
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: Configuration de SUSE Observability Affinity
+
+Le tableau SUSE Observability Values génère des configurations d'affinité que vous pouvez utiliser avec le tableau SUSE Observability principal pour contrôler le comportement de l'ordonnancement des pods. Les valeurs d'affinité permettent d'optimiser l'utilisation des ressources et d'assurer une haute disponibilité en contrôlant l'ordonnancement des pods.
+
+== Options de configuration disponibles
+
+=== Affinité des nœuds
+
+Vous pouvez utiliser l'affinité de nœud pour planifier des pods sur des nœuds ou des groupes d'instances spécifiques, tels que des nœuds EC2 déployés dans la même zone de disponibilité.
+
+[,yaml]
+----
+affinity:
+  # Node Affinity settings - applied to all components when configured
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+          - us-west-2a
+----
+
+=== Pod Anti-Affinité
+
+Vous pouvez utiliser l'anti-affinité des pods pour planifier des répliques de services de données sur différents nœuds afin d'assurer une haute disponibilité. Par défaut, l'ordonnancement est obligatoire (anti-affinité dure) et `topologyKey` est `kubernetes.io/hostname`.
+
+[,yaml]
+----
+affinity:
+  podAntiAffinity:
+    # Enable required pod anti-affinity (true = hard, false = soft)
+    requiredDuringSchedulingIgnoredDuringExecution: true
+    # Topology key for pod anti-affinity
+    topologyKey: "kubernetes.io/hostname"
+----
+
+== Comportement
+
+=== Affinité des nœuds
+
+* **Lorsqu'il est configuré**: Appliqué à tous les composants
+
+=== Pod Anti-Affinité
+
+* **Lorsqu'il est configuré**: Uniquement appliqué lorsque `sizing.profile` se termine par `-ha` (profils de haute disponibilité)
+* **Profils des AP**: `150-ha`, `250-ha`, `500-ha`, `4000-ha`
+* **Composants concernés**: Tous les services de données avec état, y compris Clickhouse, Kafka, Zookeeper, VictoriaMetrics, StackGraph, Elasticsearch
+
+== Exemples de configurations
+
+=== Affinité de base des nœuds (même zone de disponibilité) + PodAntiAffinity dur pour le déploiement HA
+
+Supposons que vous définissiez `sizing.profile` sur l'un des profils HA. Les valeurs ci-dessous configurent nodeAffinity pour planifier les composants de SUSE Observability dans la zone `us-west-2a` et imposer la planification des répliques des mêmes services de données sur des hôtes différents (`affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution`=`true` par défaut).
+[,yaml]
+----
+affinity:
+  # Schedule all pods to nodes in the same AZ
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+          - us-west-2a
+----
+
+=== Soft PodAntiAffinity pour le déploiement HA
+Si l'ordonnancement des services de données sur différents nœuds n'est pas souhaitable, vous pouvez configurer podAntiAffinity en mode "soft" :
+[,yaml]
+----
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: false
+----
+
+== Utilisation
+
+=== Étape 1 : Créez votre fichier de valeurs d'affinité
+
+Créez un fichier de valeurs distinct avec la configuration d'affinité souhaitée. Par exemple, enregistrez le texte suivant sous `suse-observability-values-values.yaml`:
+
+[,yaml]
+----
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+          - us-west-2a
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: true
+----
+
+=== Étape 2 : Générer les valeurs du modèle d'affinité
+
+Exécutez la commande suivante pour générer le modèle de valeurs d'affinité :
+
+[,text]
+----
+export VALUES_DIR=.
+helm template \
+  --set license='<your license>' \
+  --set baseUrl='<suse-observability-base-url>' \
+  --set sizing.profile='<sizing.profile>' \
+  --values suse-observability-values-values.yaml \
+  suse-observability-values \
+  suse-observability/suse-observability-values --output-dir $VALUES_DIR
+----
+
+=== Étape 3 : Utiliser les valeurs générées dans l'installation de Helm
+
+Incluez les valeurs d'affinité générées dans votre installation Helm :
+
+[,bash]
+----
+helm upgrade \
+  --install \
+  --namespace suse-observability \
+  --values $VALUES_DIR/suse-observability-values/templates/baseConfig_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/sizing_values.yaml \
+  --values $VALUES_DIR/suse-observability-values/templates/affinity_values.yaml \
+  suse-observability \
+  suse-observability/suse-observability
+----
