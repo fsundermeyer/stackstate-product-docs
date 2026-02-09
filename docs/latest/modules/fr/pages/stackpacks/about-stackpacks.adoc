@@ -1,0 +1,89 @@
+= À propos de StackPacks
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability auto-hébergé v5.1.x
+
+== Vue d'ensemble
+
+Les StackPacks étendent les fonctionnalités de SUSE Observability et offrent une intégration automatisée avec des systèmes externes. Ils peuvent être facilement installés et désinstallés à partir de la page StackPacks dans SUSE Observability.
+
+Il existe deux types de StackPack : les modules complémentaires et les intégrations. Les add-ons et intégrations StackPack disponibles se trouvent sur la page *StackPacks* de l'interface utilisateur de SUSE Observability.
+
+== Installer ou désinstaller un StackPack
+
+Les StackPacks peuvent être installés et désinstallés à partir de la page *StackPacks* dans SUSE Observability. Des instructions complètes pour l'installation et la désinstallation du StackPack sont fournies.
+
+[NOTE]
+====
+*Notez que :*
+
+* Un StackPack peut nécessiter des étapes d'installation *manuelle* ou la configuration du système externe. Veuillez lire attentivement les instructions fournies.
+* Lorsqu'un StackPack ou une instance de StackPack est désinstallé, *toutes les données reçues via le StackPack (instance) seront supprimées de SUSE Observability.*
+* Toute configuration ou installation (manuelle) de composants StackPack dans un système externe peut nécessiter une désinstallation séparée.
+
+====
+
+
+=== Instances StackPack
+
+Certains StackPacks vous permettent de vous connecter à plusieurs comptes sur un système externe. Chaque compte est configuré dans une instance distincte du StackPack.
+
+Par exemple, le StackPack AWS peut se connecter à plusieurs comptes AWS et combiner les informations de tous les comptes dans SUSE Observability. Pour chaque compte, une instance SUSE Observability distincte est configurée avec les informations requises pour recevoir les données de ce compte AWS.
+
+== Mise à niveau d'un StackPack
+
+[CAUTION]
+====
+Lorsqu'un StackPack est mis à niveau, *toutes les modifications apportées aux éléments de configuration de ce StackPack sont écrasées*. Pour plus de détails, voir les xref:/stackpacks/about-stackpacks.adoc#_locked_configuration_items[éléments de configuration verrouillés].
+====
+
+
+Si une nouvelle version du StackPack est disponible, une alerte s'affiche sur la page StackPack de SUSE Observability UI et vous avez la possibilité d'afficher les détails de la mise à niveau et de lire les notes de mise à jour. Si la nouvelle version est une mise à jour mineure par rapport à la version actuellement installée, vous pouvez également mettre à jour le StackPack à partir d'ici.
+
+=== Nouvelle version mineure de StackPack
+
+Pour passer à une nouvelle version mineure d'un StackPack, cliquez sur *UPGRADE NOW* sur la page du StackPack dans l'interface utilisateur de SUSE Observability.
+
+Notez que tous les éléments de configuration de StackPack seront écrasés lors de la mise à niveau. Pour continuer à utiliser les modifications apportées à ces derniers, choisissez de *GARDER* la configuration existante lorsque vous mettez à jour le StackPack. Pour plus de détails, voir les xref:/stackpacks/about-stackpacks.adoc#_locked_configuration_items[éléments de configuration verrouillés].
+
+=== Nouvelle version majeure de StackPack
+
+[CAUTION]
+====
+Lorsqu'un StackPack est mis à niveau, *toutes les modifications apportées aux éléments de configuration de ce StackPack sont écrasées*. Pour plus de détails, voir les xref:/stackpacks/about-stackpacks.adoc#_locked_configuration_items[éléments de configuration verrouillés].
+====
+
+
+Pour passer à une nouvelle version majeure d'un StackPack, xref:/stackpacks/about-stackpacks.adoc#_install_or_uninstall_a_stackpack[désinstallez et réinstallez] le StackPack.
+
+[TIP]
+====
+
+Continuer à utiliser les modifications apportées aux éléments de configuration personnalisés de StackPack après la mise à niveau :
+
+. Avant de procéder à la mise à niveau, exportez chaque élément personnalisé :
+ ** Accédez à la page *Paramètres* dans l'interface utilisateur de SUSE Observability.
+ ** Cliquez sur *Exporter* dans le menu *...* pour chaque élément personnalisé.
+. Mettre à jour le StackPack (désinstaller et réinstaller).
+. Modifiez les adresses `name` et `identifier` pour chaque article exporté :
+ ** Ouvrez le fichier d'exportation dans un éditeur de texte.
+ ** Modifiez les champs de premier niveau `name` et `identifier`.
+ ** Sauvegarder l'exportation.
+. xref:/setup/data-management/backup_restore/configuration_backup.adoc#_import_configuration[Importer] le(s) fichier(s) d'exportation mis à jour.
+. Les éléments de configuration personnalisés seront désormais disponibles dans SUSE Observability et pourront être copiés dans les éléments de configuration StackPack nouvellement installés.
+
+====
+
+
+== Éléments de configuration verrouillés
+
+Les StackPacks contiennent des informations de configuration pour SUSE Observability qui sont installées lors de l'installation du StackPack (instance). Il peut s'agir, entre autres, de modèles de composants, de fonctions, d'actions de composants et de vues. Lorsqu'un StackPack est mis à niveau, *les éléments de configuration installés par la version précédente du StackPack sont remplacés par ceux du nouveau StackPack.* Cela signifie que toute modification manuelle apportée à ces éléments de configuration sera écrasée lors de la mise à niveau du StackPack.
+
+Pour éviter qu'un utilisateur ne modifie les éléments de configuration installés par un StackPack qui seront écrasés lors d'une mise à niveau, ces éléments de configuration sont *verrouillés* par défaut. Cela signifie qu'ils ne peuvent pas être modifiés par l'utilisateur et qu'ils doivent être explicitement *déverrouillés* avant de pouvoir être modifiés.
+
+[TIP]
+====
+
+Vous pouvez xref:/setup/data-management/backup_restore/configuration_backup.adoc[effectuer une sauvegarde des éléments de configuration]. Notez que l'état de verrouillage des éléments de configuration ne sera pas exporté dans le cadre d'une sauvegarde de la configuration.
+====
+

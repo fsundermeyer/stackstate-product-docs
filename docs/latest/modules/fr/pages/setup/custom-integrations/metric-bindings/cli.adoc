@@ -1,0 +1,119 @@
+= Utilisation de la CLI pour les liaisons métriques
+:revdate: 2026-01-14
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+== Vue d'ensemble
+
+Vous pouvez utiliser le CLI de {stackstate-product-name} pour inspecter et modifier les liaisons métriques.  Ils sont traités comme les autres paramètres à l'aide de la commande `sts settings`.
+
+== Inspection des fixations métriques
+
+=== Liste des fixations métriques
+
+La commande `sts settings` permet de dresser la liste de toutes les liaisons métriques :
+
+[,bash]
+----
+sts settings list --type MetricBinding
+TYPE          | ID              | IDENTIFIER         | NAME               | OWNED BY           | LAST UPDATED
+MetricBinding | 190567588459765 | urn:stackpack:kube | .NET GC Allocated  | urn:stackpack:kube | Sun Jan 11 01:28:2
+              |                 | rnetes-v2:shared:m |                    | rnetes-v2:shared   | 8 2026 CET
+              |                 | etric-binding:pod: |                    |                    |
+              |                 | dotnet-gc-allocate |                    |                    |
+              |                 | d                  |                    |                    |
+MetricBinding | 247972504900226 | urn:stackpack:kube | .NET GC Allocated  | urn:stackpack:kube | Sun Jan 11 01:28:2
+              |                 | rnetes-v2:shared:m |                    | rnetes-v2:shared   | 8 2026 CET
+              |                 | etric-binding:depl |                    |                    |
+              |                 | oyment:dotnet-gc-a |                    |                    |
+              |                 | llocated           |                    |                    |
+MetricBinding | 109239589408271 | urn:stackpack:open | .NET GC Allocated  | urn:stackpack:open | Wed Jan 7 00:20:48
+              |                 | -telemetry:shared: |                    | -telemetry:shared  |  2026 CET
+              |                 | metric-binding:ser |                    |                    |
+              |                 | vice:dotnet-gc-all |                    |                    |
+              |                 | ocated             |                    |                    |
+...
+----
+
+=== Description des fixations métriques
+
+Vous pouvez obtenir la définition d'une liaison métrique existante en utilisant la commande `describe`:
+
+[,bash]
+----
+sts settings describe --ids 190567588459765
+_version: 1.0.93
+nodes:
+- _type: MetricBinding
+  chartType: line
+  description: Bytes allocated to GC Heap
+  enabled: true
+  id: -1
+  identifier: urn:stackpack:kubernetes-v2:shared:metric-binding:pod:dotnet-gc-allocated
+  layout:
+    metricPerspective:
+      section: GC
+      tab: .NET
+      weight: 3
+  name: .NET GC Allocated
+  priority: high
+  queries:
+  - alias: allocated
+    expression: rate(process_runtime_dotnet_gc_allocations_size_bytes_total{k8s_cluster_name="${tags.cluster-name}", k8s_namespace_name="${tags.namespace}", k8s_pod_name="${name}"}[${__rate_interval}])
+  scope: (label = "stackpack:kubernetes" and type = "pod")
+  unit: bytes(IEC)
+timestamp: 2026-01-14T13:11:07.575662922Z[Etc/UTC]
+----
+
+== Modification des liaisons métriques
+
+[NOTE]
+====
+La méthode de travail recommandée consiste à stocker les liaisons métriques (et toute autre ressource personnalisée créée dans {stackstate-product-name}) sous forme de fichiers YAML dans xref:/setup/custom-integrations/overview.adoc[un StackPack]. À partir de là, les modifications peuvent être appliquées manuellement ou être entièrement automatisées à l'aide de l'interface CLI de SUSE Observability dans un système CI/CD tel que les actions GitHub ou les pipelines GitLab.
+====
+
+=== Créer/mettre à jour une liaison métrique
+Créez un fichier `metric-bindings.yaml` qui ressemble à ceci :
+
+[source,bash]
+----
+nodes:
+- _type: MetricBinding
+  chartType: line
+  enabled: true
+  tags: {}
+  unit: short
+  name: Replica counts
+  priority: MEDIUM
+  identifier: urn:stackpack:my-stackpack:metric-binding:my-deployment-replica-counts
+  queries:
+    - expression: max_over_time(kubernetes_state_deployment_replicas{cluster_name="${tags.cluster-name}", namespace="${tags.namespace}", deployment="${name}"}[${__interval}])
+      alias: Total replicas
+  scope: type = "deployment" and label = "stackpack:kubernetes"
+----
+
+Utilisez l'xref:/setup/cli/cli-sts.adoc[interface de commande SUSE Observability] pour créer la liaison métrique :
+
+[,bash]
+----
+sts settings apply -f metric-bindings.yaml
+----
+
+Vérifiez les résultats dans SUSE Observability en ouvrant la perspective des métriques pour un déploiement. Si vous n'êtes pas satisfait du résultat, il vous suffit de modifier le binding métrique dans le fichier YAML et d'exécuter à nouveau la commande pour le mettre à jour. La liste des nœuds permet d'ajouter de nombreuses liaisons métriques. Il suffit d'ajouter une autre entrée de liaison métrique au tableau YAML en suivant les mêmes étapes que précédemment.
+
+[CAUTION]
+====
+L'identifiant est utilisé comme clé unique d'une liaison métrique. La modification de l'identifiant créera une nouvelle liaison métrique au lieu de mettre à jour la liaison existante.
+====
+
+=== Supprimer une liaison métrique
+
+Enfin, pour supprimer une liaison métrique, utilisez
+
+[,bash]
+----
+sts settings delete --ids <id>
+----
+
+Le `<id>` de cette commande n'est pas l'identifiant mais le numéro de la colonne `Id` de la sortie `sts settings list`.
+
