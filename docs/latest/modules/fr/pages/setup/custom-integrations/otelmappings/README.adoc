@@ -1,0 +1,32 @@
+ifdef::ss-ff-stackpacks2_enabled[]
+= Topologie de OpenTelemetry
+:revdate: 2025-12-23
+:page-revdate: {revdate}
+:description: Topologie de OpenTelemetry
+
+{stackstate-product-name} peut automatiquement déduire la topologie des applications et de l'infrastructure à partir des données télémétriques d'OpenTelemetry (OTel).
+Pour ce faire, les mappages topologiques d'OpenTelemetry transforment de manière déclarative les signaux de trace et de métrique en composants topologiques (sommets) et en relations (arêtes).
+
+== Vue d'ensemble
+
+À un niveau élevé, la génération de topologie à partir d'OpenTelemetry fonctionne comme suit :
+
+* La télémétrie OpenTelemetry (métriques et/ou traces) est reçue par le collecteur.
+* Le collecteur OTel utilise un connecteur de topologie qui évalue les correspondances configurées par rapport à la télémétrie.
+* Lorsque les conditions de mise en correspondance correspondent à la télémétrie, des composants et/ou des relations sont produits.
+* Ces objets topologiques sont consommés par le service `sync` et fusionnés dans le graphe topologique.
+* Les correspondances sont déclaratives, basées sur le langage YAML et évaluées en permanence au fur et à mesure que les données télémétriques circulent dans le système.
+
+Signaux actuellement pris en charge :
+
+* Métriques
+* Traces
+
+[NOTE]
+====
+La génération de topologie basée sur les journaux n'est pas encore prise en charge.
+====
+
+Pour plus d'informations sur les mappages de composants et de relations, voir la page des xref:/setup/custom-integrations/otelmappings/concepts.adoc[concepts].
+
+endif::ss-ff-stackpacks2_enabled[]
