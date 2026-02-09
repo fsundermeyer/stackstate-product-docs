@@ -1,0 +1,33 @@
+= Options d'authentification
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability en mode auto-hébergé
+
+Au départ, SUSE Observability est configuré avec une xref:/setup/security/authentication/file.adoc[authentification par mot de passe unique] avec l'utilisateur admin et un mot de passe aléatoire xref:/setup/install-stackstate/initial_run_guide.adoc#_default_username_and_password[configuré lors de l'installation]. Cela permet d'authentifier les utilisateurs à l'aide d'un simple secret sur le serveur. Toutefois, il ne s'agit pas d'une installation prête à être produite.
+
+Pour une meilleure sécurité, SUSE Observability peut être configuré pour utiliser exactement l'un des mécanismes d'authentification suivants (en remplacement de l'utilisateur admin standard) :
+
+* xref:/setup/security/authentication/single_password.adoc[Mot de passe unique]
+* xref:/setup/security/authentication/file.adoc[Basé sur des fichiers]
+* xref:/setup/security/authentication/ldap.adoc[LDAP]
+* xref:/setup/security/authentication/oidc.adoc[Open ID Connect (OIDC)]
+* xref:/setup/security/authentication/keycloak.adoc[KeyCloak (une version spécialisée de l'OIDC)]
+
+[NOTE]
+====
+La configuration de l'authentification fait partie de la charte Helm, tout changement déclenchera automatiquement un redémarrage des pods qui en ont besoin.
+====
+
+
+== Rôles des utilisateurs
+
+Lorsqu'un utilisateur a été authentifié, les autorisations lui sont généralement attribuées en fonction de ses rôles. La documentation relative aux mécanismes d'authentification spécifiques contient également des exemples sur la manière de mapper les rôles ou les groupes des systèmes externes aux 4 rôles standard de SUSE Observability :
+
+* *Invité* - peut consulter les informations mais n'apporte aucune modification.
+* *Kubernetes Troubleshooter* - capable de voir toutes les informations et de voir et modifier les moniteurs et la configuration des métriques.
+* *Power User* - capable de voir et de modifier toute la configuration et d'installer des StackPacks.
+* *Administrateur* - capable de voir et de modifier le contenu de SUSE Observability. Par exemple, voir toute la configuration, installer des StackPacks, accorder et révoquer les autorisations des utilisateurs et télécharger des (nouvelles) versions de StackPacks.
+
+Lorsque vous décidez des rôles à attribuer à vos utilisateurs, il est fortement conseillé de n'avoir qu'un petit groupe d'administrateurs de plate-forme et d'administrateurs. Par exemple, seuls les ingénieurs responsables de l'installation de SUSE Observability et de la configuration initiale. Les utilisateurs administrateurs peuvent gérer l'accès à SUSE Observability et décider quels StackPacks peuvent être utilisés. Vous pouvez déléguer l'installation des StackPacks et d'autres ajustements de la configuration à un plus grand nombre d'utilisateurs avec le rôle d'utilisateur puissant. Les utilisateurs de l'administrateur de la plate-forme peuvent effacer la base de données, modifier les paramètres de conservation des données, consulter les journaux et effectuer d'autres tâches de gestion de la plate-forme.
+
+Il est également possible d'ajouter d'autres rôles, voir la page xref:/setup/security/rbac/rbac_roles.adoc[Rôles (RBAC] ) et les autres xref:/setup/security/rbac/README.adoc[pages de la documentation RBAC]
