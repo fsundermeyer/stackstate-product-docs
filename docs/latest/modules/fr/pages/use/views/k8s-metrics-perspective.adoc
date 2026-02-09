@@ -1,0 +1,22 @@
+= Perspective métrique
+:revdate: 2025-07-10
+:page-revdate: {revdate}
+:description: SUSE Observability
+
+La perspective des métriques affiche les métriques de la ressource sélectionnée.
+
+image::k8s/k8s-metrics-perspective.png[La perspective des métriques]
+
+== Graphiques
+
+Les graphiques montrent les données métriques pour les composants sélectionnés en temps quasi réel - les données sont récupérées toutes les 30 secondes. Si un processus est arrêté et que plus aucune donnée n'est reçue, le processus finira par quitter le graphique car les données se déplacent vers la gauche au moins toutes les 30 secondes. Si d'autres données arrivent pendant l'intervalle de 30 secondes, elles seront reportées sur un graphique.
+
+== Commande
+
+ifdef::ss-ff-stackpacks2_enabled[]
+Les tableaux métriques sont classés par priorité et par nom. Les deux sont configurés sur la xref:/setup/custom-integrations/metric-bindings/index.adoc[liaison métrique].
+endif::[]
+
+ifndef::ss-ff-stackpacks2_enabled[]
+Les tableaux métriques sont classés par priorité et par nom. Les deux sont configurés sur la xref:/use/metrics/k8s-add-charts.adoc[liaison métrique].
+endif::[]
